@@ -3,12 +3,13 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 
 | 🔖 Disciplina | Fundamentos de Desenvolvimento de Software |  
 
-👥 Integrantes do Grupo  
+👥 Integrantes do Grupo: 
+
 Marco Antonio Veras Sanson e Souza
-
 João Cláudio Cavalcanti Beltrão Filho
-
 João Lucas de Oliveira Gonçalves Baima
+Luís Felipe Furlaneto Lima
+Juliana van der Linden Mota
  
 
 🎯 Objetivo  
