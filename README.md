@@ -10,6 +10,7 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 - João Lucas de Oliveira Gonçalves Baima
 - Luís Felipe Furlaneto Lima
 - Juliana van der Linden Mota
+- Vitória Souza Raposo Teixeira
  
 
 🎯 Objetivo  
