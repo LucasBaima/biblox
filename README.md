@@ -5,11 +5,11 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 
 👥 Integrantes do Grupo: 
 
-Marco Antonio Veras Sanson e Souza
-João Cláudio Cavalcanti Beltrão Filho
-João Lucas de Oliveira Gonçalves Baima
-Luís Felipe Furlaneto Lima
-Juliana van der Linden Mota
+-Marco Antonio Veras Sanson e Souza
+-João Cláudio Cavalcanti Beltrão Filho
+-João Lucas de Oliveira Gonçalves Baima
+-Luís Felipe Furlaneto Lima
+-Juliana van der Linden Mota
  
 
 🎯 Objetivo  
