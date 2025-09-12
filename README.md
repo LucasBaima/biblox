@@ -30,7 +30,7 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
   <!-- Links principais da entrega -->
   • **Histórias (Docs):**  (https://docs.google.com/document/d/1b9qbNjpCiyQE_ync4hT_Wn1JKFUz-lr83mvTd-sLNLU/edit?usp=sharing)  
   • **Jira (projeto/board):**  (https://projeto-fds-gp3.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)  
-  • **Screencast (vídeo):** [insira aqui o link do vídeo](https://seu-link-do-video)
+  • **Screencast (vídeo):** [insira aqui o link do vídeo](https://www.youtube.com/watch?v=FVJNxlJSBmc)
 
   <!-- Evidências (duas imagens do Jira) -->
   <p align="center">
