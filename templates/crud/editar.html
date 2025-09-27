@@ -1,0 +1,68 @@
+{% extends "crud/base.html" %} 
+{% block title %}Editar Livro{% endblock %}
+
+{% block content %}
+
+
+    <h1>Editar Livro</h1>
+    <form method="post" action="{% url 'livros:editar' id=livro_id %}"> 
+        {% csrf_token %}
+
+        <p>
+            <label for="id_nome">Novo livro</label><br>
+            <input 
+                type="text" 
+                name="nome"  id="id_nome" 
+                value="{{ dados.nome|default_if_none:'' }}"
+            >
+            {% if erros.nome %}<span style="color: red;">{{ erros.nome }}</span>{% endif %}
+        </p>
+
+
+
+
+
+        <p>
+            <label for="id_autor">Autor:</label><br>
+            <input 
+                type="text" 
+                name="autor"  id="id_autor"
+                value="{{ dados.autor|default_if_none:'' }}"
+            >
+            {% if erros.autor %}<span style="color: red;">{{ erros.autor }}</span>{% endif %}
+        </p>
+
+
+
+
+        <p>
+            <label for="id_isbn">ISBN:</label><br>
+            <textarea 
+                name="isbn"  id="id_isbn"
+                rows="4" 
+                cols="40"
+            >{{ dados.isbn|default_if_none:'' }}</textarea>
+            {% if erros.isbn %}<span style="color: red;">{{ erros.isbn }}</span>{% endif %}
+        </p>
+
+
+
+        
+        <p>
+            <input 
+                type="checkbox" 
+                name="completo" 
+                id="id_completo" 
+                value="True"
+                {% if dados.completo %}checked{% endif %}
+            >
+            <label for="id_completo">Edição completa (Já finalizada?)</label>
+        </p>
+
+
+        <button type="submit">Salvar alterações</button> 
+    </form>
+    
+    <p><a href="{% url 'livros:home1' %}">Voltar para a Listagem</a></p>
+
+{% endblock content %}
