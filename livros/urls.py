@@ -6,6 +6,7 @@ app_name = "livros"    #namespace para que o nome das rotas sejam reconhecidas"
 
 
 urlpatterns = [
-    path("", views.home),
+    path("", views.home, name="home1"),
     path("cadastrar/", views.cadastrar_livro, name="cadastrar") #Rota passada para o html dentro da tag
 ]
+
