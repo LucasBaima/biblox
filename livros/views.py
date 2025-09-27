@@ -1,5 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import CadastroLivroModel #-> Importação do modelo
+from django.http import HttpRequest
 
 
 
@@ -57,3 +58,10 @@ def cadastrar_livro(request):
                 validacao['erro_geral'] = f'Erro ao salvar: {e}'
     
     return render(request, 'crud/cadastrar.html', validacao)   #renderizar o conteúdo do arquivo cadastrar.html
+
+
+
+def remover_livro(request:HttpRequest, id):
+    livro = get_object_or_404(CadastroLivroModel, id=id) #Tentaviva de obter item do banco de dados na tabela do nosso model com o parâmetro passado.. e se n encontrar dará um not found404
+    livro.delete()
+    return redirect("livros:home1")
