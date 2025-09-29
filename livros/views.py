@@ -11,7 +11,7 @@ def home(request):
     
     user['registros'] = CadastroLivroModel.objects.all()    #"Encapsulando a key dentro do dicionário user"
     
-    return render(request, "crud/inicial.html", user)
+    return render(request, "livros/inicial.html", user)
 
 
 
@@ -33,15 +33,15 @@ def cadastrar_livro(request):
         
         
         if not nome:   
-            validacao['nome'] = 'O campo name é obrigatório.'
+            erros['nome'] = 'O campo name é obrigatório.'
             
         if not autor:
-            validacao["autor"] = "Campo autor é obrigatório"   
+            erros["autor"] = "Campo autor é obrigatório"   
             
             
         if isbn:    
             if len(isbn) != 13: # Exemplo: ISBN deve ter 13 dígitos
-                validacao['isbn'] = 'O ISBN deve ter 13 caracteres.' #validação 2
+                erros['isbn'] = 'O ISBN deve ter 13 caracteres.' #validação 2
         
         
         if erros:
@@ -66,10 +66,15 @@ def cadastrar_livro(request):
                 return redirect("livros:home1") # Redireciona para a home1
             
             except Exception as e:
-                # Lidar com erros de banco de dados
-                validacao['erro_geral'] = f'Erro ao salvar: {e}'
+                # 
+                validacao['erro_geral'] = 'Erro de integridade ao salvar no banco.'
+            except Exception as e:
+                validacao['erro_geral'] = f'Erro desconhecido ao salvar: {e}'
     
-    return render(request, 'crud/cadastrar.html', validacao)   #renderizar o conteúdo do arquivo cadastrar.html
+    return render(request, 'livros/cadastrar.html', validacao)   #renderizar o conteúdo do arquivo cadastrar.html
+
+
+
 
 
 
@@ -142,5 +147,7 @@ def editar_livro(request:HttpRequest, id):
              
         
     
-    return render(request, 'crud/editar.html', contexto) 
+    return render(request, 'livros/editar.html', contexto) 
+    
+    
     

@@ -1,4 +1,4 @@
-{% extends "crud/base.html" %} 
+{% extends "base.html" %} 
 {% block title %}Editar Livro{% endblock %}
 
 {% block content %}
@@ -63,6 +63,6 @@
         <button type="submit">Salvar alterações</button> 
     </form>
     
-    <p><a href="{% url 'livros:home1' %}">Voltar para a Listagem</a></p>
+    <p><a href="{% url 'livros:home1' %}">Listar livros</a></p>
 
 {% endblock content %}
