@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8"><title>Registrar Devolução</title>
+<h1>Registrar Devolução</h1>
+
+<p>
+  <b>Livro:</b> {{ emprestimo.livro.nome }}<br>
+  <b>Usuário:</b> {{ emprestimo.usuario.username }}<br>
+  <b>Prevista:</b> {{ emprestimo.data_prevista_devolucao }}
+</p>
+
+{% if messages %}<ul>{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+
+<form method="post">{% csrf_token %}
+  <label>Data de Devolução (YYYY-MM-DD):</label>
+  <input name="data_devolucao" placeholder="2025-10-05" required><br><br>
+  <button type="submit">Confirmar</button>
+  <a href="{% url 'livros:emprestimos_list' %}">Cancelar</a>
+</form>

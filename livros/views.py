@@ -1,198 +1,152 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CadastroLivroModel #-> Importação do modelo
 from django.http import HttpRequest
+from .models import CadastroLivroModel, Emprestimo
 
+def home(request):
+    user = {"user": "usuário"}
+    user["registros"] = CadastroLivroModel.objects.all()
+    return render(request, "crud/inicial.html", user)
 
-
-def home(request): 
-    user = {
-        "user":"usuário"
-    }
-    
-    user['registros'] = CadastroLivroModel.objects.all()    #"Encapsulando a key dentro do dicionário user"
-    
-    return render(request, "livros/inicial.html", user)
-
-
-
-
-  
 def cadastrar_livro(request):
-    validacao ={}
-    
-    
-    if request.method == "POST": #extração direta
-        nome = request.POST.get('nome')
-        autor = request.POST.get('autor')           #cada campo do formulario enviado extraido
-        isbn = request.POST.get('isbn')
-        completo = request.POST.get('completo')
-        # ... extrai todos os outros campos ...
-
-        #  VALIDAÇÃO MANUAL 
+    validacao = {}
+    if request.method == "POST":
+        nome = request.POST.get("nome")
+        autor = request.POST.get("autor")
+        isbn = request.POST.get("isbn")
+        completo = request.POST.get("completo")
         erros = {}
-        
-        
-        if not nome:   
-            erros['nome'] = 'O campo name é obrigatório.'
-            
+        if not nome:
+            erros["nome"] = "O campo name é obrigatório."
         if not autor:
-            erros["autor"] = "Campo autor é obrigatório"   
-            
-            
-        if isbn:    
-            if len(isbn) != 13: # Exemplo: ISBN deve ter 13 dígitos
-                erros['isbn'] = 'O ISBN deve ter 13 caracteres.' #validação 2
-        
-        
+            erros["autor"] = "Campo autor é obrigatório"
+        if isbn and len(isbn) != 13:
+            erros["isbn"] = "O ISBN deve ter 13 caracteres."
         if erros:
-            #  Se houver erros, passa os erros e os dados para o template
-            validacao['erros'] = erros
-            validacao['dados'] = request.POST # Passa os dados preenchidos para não perdê-los
-            
-            
-            
-            
-            
+            validacao["erros"] = erros
+            validacao["dados"] = request.POST
         else:
-            #  SALVAMENTO MANUAL NO BANCO DE DADOS
             try:
                 CadastroLivroModel.objects.create(
-                    nome=nome,
-                    autor=autor,
-                    isbn=isbn,
-                    completo=bool(completo), # Conversão de tipo manual
-                    
+                    nome=nome, autor=autor, isbn=isbn, completo=bool(completo),
                 )
-                return redirect("livros:home1") # Redireciona para a home1
-            
+                return redirect("livros:home1")
             except Exception as e:
-                # 
-                validacao['erro_geral'] = 'Erro de integridade ao salvar no banco.'
-            except Exception as e:
-                validacao['erro_geral'] = f'Erro desconhecido ao salvar: {e}'
-    
-    return render(request, 'livros/cadastrar.html', validacao)   #renderizar o conteúdo do arquivo cadastrar.html
+                validacao["erro_geral"] = f"Erro ao salvar: {e}"
+    return render(request, "crud/cadastrar.html", validacao)
 
-
-
-
-
-
-
-
-
-def remover_livro(request:HttpRequest, id):
-    livro = get_object_or_404(CadastroLivroModel, id=id) #Tentaviva de obter item do banco de dados na tabela do nosso model com o parâmetro passado.. e se n encontrar dará um not found404
+def remover_livro(request: HttpRequest, id):
+    livro = get_object_or_404(CadastroLivroModel, id=id)
     livro.delete()
-    return redirect("livros:home1")   #após clicar em remover.. irá pra rota remover e redirecionará rapidamente para cá!home1
+    return redirect("livros:home1")
 
-
-
-
-
-
-
-def editar_livro(request:HttpRequest, id):
-    # 1. Busca o livro existente no banco de dados
+def editar_livro(request: HttpRequest, id):
     livro_existente = get_object_or_404(CadastroLivroModel, id=id)
-    
-    contexto = {'livro_id': id}
-
-    if request.method == 'POST':
-        
-    #   Repetição da lógica de validação para não dá problemas
-        nome = request.POST.get('nome')
-        autor = request.POST.get('autor')
-        isbn = request.POST.get('isbn')
-        completo_post = request.POST.get('completo')
-        
-        # validação dos campos manualmente
+    contexto = {"livro_id": id}
+    if request.method == "POST":
+        nome = request.POST.get("nome")
+        autor = request.POST.get("autor")
+        isbn = request.POST.get("isbn")
+        completo_post = request.POST.get("completo")
         erros = {}
-        
         if not nome:
-            erros['nome'] = 'O nome é obrigatório.'
-        
-        
+            erros["nome"] = "O nome é obrigatório."
         if erros:
-            # Se houver erros, passa os erros e os dados POSTADOS para o template
-            contexto['erros'] = erros
-            contexto['dados'] = request.POST # Mantém o que o usuário tentou enviar
-            
-            
+            contexto["erros"] = erros
+            contexto["dados"] = request.POST
         else:
-            #  Atualiza o objeto com os novos dados
             livro_existente.nome = nome
             livro_existente.autor = autor
             livro_existente.isbn = isbn
-          
-            livro_existente.completo = bool(completo_post) 
-            
-            
-            
-            
-            
+            livro_existente.completo = bool(completo_post)
             livro_existente.save()
-            return redirect("livros:home1") 
-            
-   
-    if 'dados' not in contexto:  #Se dados não existir dentro de contexto
-       
-        contexto['dados'] = {
-            'nome': livro_existente.nome,
-            'autor': livro_existente.autor,   #valores originais do modelo(banco de dados) será atribuidos
-            'isbn': livro_existente.isbn,
-            'completo': livro_existente.completo, }
-            
-            #agora a chave dados armazena  um dicionário que mapeio o nome dos campos existentes
-             
-        
-    
-    return render(request, 'livros/editar.html', contexto) 
-    
-    
-    
-def registrar_livro(request, id):
-    
-    Registro = get_object_or_404(CadastroLivroModel, id=id)
-    
-    context = {'livro_id': id, 'registro': Registro}
-    
-    
-    
-    if request.method == "POST":
-        
-        data_devolucao = request.POST.get('data_devolucao')
-        
-        
-        
-        erros = {}
-        
-        
-        
-        if Registro.emprestado == True:
-            erros['emprestado'] = f'o Livro "{Registro.nome}" já foi emprestado'
-            
-        if not erros and not data_devolucao:
-            erros['data_devolucao'] = 'A data de devolução é obrigatória.'
+            return redirect("livros:home1")
+    if "dados" not in contexto:
+        contexto["dados"] = {
+            "nome": livro_existente.nome,
+            "autor": livro_existente.autor,
+            "isbn": livro_existente.isbn,
+            "completo": livro_existente.completo,
+        }
+    return render(request, "crud/editar.html", contexto)
 
-        if erros:
-            context['erros'] = erros
-            context['dados'] = request.POST
-            
-            return render(request, 'livros/registrarEmprest.html', context)
-            
-        
-            
-        Registro.data_devolucao = data_devolucao
-        Registro.emprestado = True
-        Registro.save()
-        return redirect("livros:home1") 
-        
-    return render(request, 'livros/registrarEmprest.html', context) #caso seja um GET..  apenas apresenta o formulário
-        
-       
-    
-        
-    
-    
-    
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
+from django.db import IntegrityError
+from django.contrib.auth import get_user_model
+
+def is_admin(user):
+    return user.is_staff or user.is_superuser
+
+@login_required
+@user_passes_test(is_admin)
+def emprestimos_list(request):
+    qs = Emprestimo.objects.select_related("livro", "usuario").order_by("-id")
+    return render(request, "emprestimos/list.html", {"emprestimos": qs})
+
+@login_required
+@user_passes_test(is_admin)
+def registrar_emprestimo(request):
+    if request.method == "GET":
+        livros = CadastroLivroModel.objects.all().order_by("nome")
+        usuarios = get_user_model().objects.filter(is_active=True).order_by("username")
+        return render(request, "emprestimos/novo.html", {"livros": livros, "usuarios": usuarios})
+    livro_id = request.POST.get("livro_id", "").strip()
+    usuario_id = request.POST.get("usuario_id", "").strip()
+    data_saida = request.POST.get("data_saida", "").strip()
+    data_prevista = request.POST.get("data_prevista_devolucao", "").strip()
+    User = get_user_model()
+    try:
+        usuario = User.objects.get(pk=usuario_id)
+    except (User.DoesNotExist, ValueError):
+        messages.error(request, "Usuário inexistente")
+        return redirect("livros:registrar_emprestimo")
+    try:
+        livro = CadastroLivroModel.objects.get(pk=livro_id)
+    except (CadastroLivroModel.DoesNotExist, ValueError):
+        messages.error(request, "Livro inválido")
+        return redirect("livros:registrar_emprestimo")
+    if getattr(livro, "status", "disponivel") != "disponivel":
+        messages.error(request, "Livro indisponível para empréstimo")
+        return redirect("livros:registrar_emprestimo")
+    try:
+        y1, m1, d1 = [int(x) for x in data_saida.split("-")]
+        y2, m2, d2 = [int(x) for x in data_prevista.split("-")]
+        data_saida_dt = timezone.datetime(y1, m1, d1).date()
+        data_prevista_dt = timezone.datetime(y2, m2, d2).date()
+    except Exception:
+        messages.error(request, "Datas inválidas. Use YYYY-MM-DD.")
+        return redirect("livros:registrar_emprestimo")
+    try:
+        Emprestimo.objects.create(
+            livro=livro, usuario=usuario,
+            data_saida=data_saida_dt, data_prevista_devolucao=data_prevista_dt,
+        )
+    except IntegrityError:
+        messages.error(request, "Livro indisponível para empréstimo")
+        return redirect("livros:registrar_emprestimo")
+    if hasattr(livro, "status"):
+        livro.status = "emprestado"
+        livro.save(update_fields=["status"])
+    messages.success(request, "Empréstimo registrado com sucesso")
+    return redirect("livros:emprestimos_list")
+
+@login_required
+@user_passes_test(is_admin)
+def registrar_devolucao(request, pk: int):
+    emp = get_object_or_404(Emprestimo, pk=pk)
+    if request.method == "GET":
+        return render(request, "emprestimos/devolver.html", {"emprestimo": emp})
+    data_dev = request.POST.get("data_devolucao", "").strip()
+    try:
+        y, m, d = [int(x) for x in data_dev.split("-")]
+        data_dev_dt = timezone.datetime(y, m, d).date()
+    except Exception:
+        messages.error(request, "Data inválida. Use YYYY-MM-DD.")
+        return redirect("livros:registrar_devolucao", pk=emp.pk)
+    atraso = emp.registrar_devolucao(data_dev_dt)
+    if atraso > 0:
+        messages.warning(request, "Devolução em atraso registrada")
+    else:
+        messages.success(request, "Devolução registrada com sucesso")
+    return redirect("livros:emprestimos_list")

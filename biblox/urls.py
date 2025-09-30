@@ -17,11 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from . import views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path('livros/', include('livros.urls')),
-    path('', include('usuarios.urls'))  # ''  -< Significa a tela incicial
+    path('admin/', admin.site.urls),
+    path('livros/', include(('livros.urls', 'livros'), namespace='livros')),  # rotas do app livros
+    path('', include('usuarios.urls')),  # rotas do app usuários (login/página inicial)
 ]
 
