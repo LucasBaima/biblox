@@ -1,18 +1,11 @@
-<!doctype html>
-<meta charset="utf-8"><title>Registrar Devolução</title>
-<h1>Registrar Devolução</h1>
-
-<p>
-  <b>Livro:</b> {{ emprestimo.livro.nome }}<br>
-  <b>Usuário:</b> {{ emprestimo.usuario.username }}<br>
-  <b>Prevista:</b> {{ emprestimo.data_prevista_devolucao }}
-</p>
-
-{% if messages %}<ul>{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
-
-<form method="post">{% csrf_token %}
-  <label>Data de Devolução (YYYY-MM-DD):</label>
-  <input name="data_devolucao" placeholder="2025-10-05" required><br><br>
-  <button type="submit">Confirmar</button>
-  <a href="{% url 'livros:emprestimos_list' %}">Cancelar</a>
+﻿<h1>Devolver Empréstimo #{{ emprestimo.id }}</h1>
+<p><b>Livro:</b> {{ emprestimo.livro.nome }}</p>
+<p><b>Usuário:</b> {{ emprestimo.usuario.username }}</p>
+<p><b>Saída:</b> {{ emprestimo.data_saida }}</p>
+<p><b>Prevista:</b> {{ emprestimo.data_prevista_devolucao }}</p>
+<form method="post">
+  {% csrf_token %}
+  <p><label>Data da devolução:</label><input type="date" name="data_devolucao" required></p>
+  <button type="submit">Registrar devolução</button>
 </form>
+<p><a href="{% url 'livros:emprestimos_list' %}">Voltar</a></p>
