@@ -74,7 +74,6 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 
 ### 🪲 Bug tracker (GitHub Issues)
 
-> Issues abertas do projeto (bug/feature), com labels, responsáveis e milestone da entrega.
 
 <p align="center">
   <a href="https://github.com/LucasBaima/biblox/issues">
