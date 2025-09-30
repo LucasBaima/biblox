@@ -54,8 +54,8 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
   <br>
   <!-- Links principais da entrega -->
 
-   • **Relatório de Programação em Par** [Docs](https://docs.google.com/document/d/1tlu_FI4Zkk6vHaO8giXaVmJPR4yNHydLY2hY6F6MqOA/edit?usp=sharin)
- 
+   • **Relatório de Programação em Par** [Docs](https://docs.google.com/document/d/1tlu_FI4Zkk6vHaO8giXaVmJPR4yNHydLY2hY6F6MqOA/edit?usp=sharin) 
+    • **Explicação Das Telas** [Docs]( https://docs.google.com/document/d/1FOyI3gV4km5Y-9Z8GcSQLG3Zdyhz8WtGFm7v_BLhC0Q/edit?usp=sharing)
   
   
 
