@@ -8,6 +8,9 @@ class CadastroLivroModel(models.Model):
     completo = models.BooleanField(default=False)
     data_criacao = models.DateTimeField(auto_now_add=True)
     
+    emprestado = models.BooleanField(default=False)
+    data_devolucao = models.DateField(null=True, blank=True)
+    
     
     def __str__(self):
         return self.nome
