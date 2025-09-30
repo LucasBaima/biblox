@@ -24,3 +24,4 @@ urlpatterns = [
     path("livros/", include("livros.urls")),
     path('', include('usuarios.urls'))  # ''  -< Significa a tela incicial
 ]
+
