@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Empréstimo{% endblock %}
+
+{% block content %}
+    <h1>Data de Devolução Prevista</h1>
+    
+    {% if erros.emprestado %}
+        <p style="color: red; font-weight: bold; padding: 10px; border: 1px solid red;">
+            {{ erros.emprestado }}
+        </p>
+        
+        <p><a href="{% url 'livros:home1' %}">Voltar para a listagem</a></p>
+
+    {% else %}
+        <form method="post" action="{% url 'livros:registrar_livro' id=livro_id %}"> 
+            {% csrf_token %}
+
+            <p>
+                <label for="id_data_devolucao">Data de Devolução Prevista:</label><br>
+                <input 
+                    type="date" 
+                    name="data_devolucao" 
+                    id="id_data_devolucao" 
+                    value="{{ dados.data_devolucao|default_if_none:'' }}"
+                >
+                
+                {% if erros.data_devolucao %}
+                    <span style="color: red; display: block; margin-top: 5px;">
+                        {{ erros.data_devolucao }}
+                    </span>
+                {% endif %}
+            </p>
+
+            <button type="submit">Registrar</button>
+
+        </form>
+    
+        <p><a href="{% url 'livros:home1' %}">Voltar para a listagem</a></p>
+
+    {% endif %}
+
+{% endblock content %}
+
+
+        
+
