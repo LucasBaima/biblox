@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Login</title></head>
+<body>
+  <h1>Entrar</h1>
+
+  {% if form.errors %}
+    <p style="color:red">Usuário ou senha inválidos.</p>
+  {% endif %}
+
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <p>
+      <label for="id_username">Usuário</label><br>
+      <input type="text" name="username" id="id_username" required>
+    </p>
+    <p>
+      <label for="id_password">Senha</label><br>
+      <input type="password" name="password" id="id_password" required>
+    </p>
+
+    {% if next %}
+      <input type="hidden" name="next" value="{{ next }}">
+    {% endif %}
+
+    <button type="submit">Entrar</button>
+  </form>
+
+  <p><a href="{% url 'livros:home1' %}">Voltar</a></p>
+</body>
+</html>

@@ -19,8 +19,9 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('livros/', include(('livros.urls', 'livros'), namespace='livros')),  # rotas do app livros
-    path('', include('usuarios.urls')),  # rotas do app usuários (login/página inicial)
+    path("admin/", admin.site.urls),
+    path("livros/", include(("livros.urls", "livros"), namespace="livros")),
+    path("accounts/", include("django.contrib.auth.urls")),
 ]
+
 

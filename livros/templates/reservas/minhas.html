@@ -1,0 +1,37 @@
+<h1>Minhas Reservas</h1>
+
+<p><a href="{% url 'livros:home1' %}">Voltar</a></p>
+
+<table border="1" cellpadding="6">
+  <tr>
+    <th>ID</th>
+    <th>Livro</th>
+    <th>Status</th>
+    <th>Criada em</th>
+    <th>Pronta em</th>
+    <th>Expira em</th>
+    <th>Ações</th>
+  </tr>
+  {% for r in reservas %}
+  <tr>
+    <td>{{ r.id }}</td>
+    <td>{{ r.livro.nome }}</td>
+    <td>{{ r.get_status_display }}</td>
+    <td>{{ r.criada_em|date:"Y-m-d H:i" }}</td>
+    <td>{{ r.pronta_em|date:"Y-m-d H:i"|default:"—" }}</td>
+    <td>{{ r.expira_em|date:"Y-m-d H:i"|default:"—" }}</td>
+    <td>
+      {% if r.status in "ativa,pronta" %}
+        <form method="post" action="{% url 'livros:cancelar_reserva' r.id %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit">Cancelar</button>
+        </form>
+      {% else %}
+        —
+      {% endif %}
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="7">Você não possui reservas.</td></tr>
+  {% endfor %}
+</table>

@@ -1,3 +1,85 @@
-﻿<h1>Home da Biblioteca</h1>
-<p><a href="{% url 'livros:emprestimos_list' %}">Ver Empréstimos</a></p>
-<p><a href="{% url 'livros:registrar_emprestimo' %}">Novo Empréstimo</a></p>
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Home da Biblioteca</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f3f3f3; text-align: left; }
+    .ok { color: #0a6; font-weight: bold; }
+    .warn { color: #a60; font-weight: bold; }
+    .actions form { display: inline; margin: 0 4px; }
+  </style>
+</head>
+<body>
+
+  <h1>Home da Biblioteca</h1>
+
+  <!-- Navegação -->
+  <p>
+    <a href="{% url 'livros:cadastrar' %}">Cadastrar livro</a> |
+    <a href="{% url 'livros:emprestimos_list' %}">Ver Empréstimos</a> |
+    <a href="{% url 'livros:registrar_emprestimo' %}">Novo Empréstimo</a> |
+    <a href="{% url 'livros:minhas_reservas' %}">Minhas reservas</a>
+  </p>
+
+  <!-- Mensagens do framework messages -->
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <!-- Lista de livros -->
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Autor</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for l in registros %}
+      <tr>
+        <td>{{ l.id }}</td>
+        <td>{{ l.nome }}</td>
+        <td>{{ l.autor }}</td>
+        <td>
+          {% if l.status == 'disponivel' %}
+            <span class="ok">Disponível</span>
+          {% elif l.status == 'emprestado' %}
+            <span class="warn">Emprestado</span>
+          {% else %}
+            {{ l.status }}
+          {% endif %}
+        </td>
+        <td class="actions">
+          <!-- Editar / Remover (CRUD) -->
+          <a href="{% url 'livros:editar' l.id %}">Editar</a>
+          <a href="{% url 'livros:remover' l.id %}">Remover</a>
+
+          <!-- Botão Reservar (apenas se estiver emprestado) -->
+          {% if l.status == 'emprestado' %}
+            <form method="post" action="{% url 'livros:criar_reserva' l.id %}">
+              {% csrf_token %}
+              <button type="submit">Reservar</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="5">Nenhum livro cadastrado.</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+</body>
+</html>
