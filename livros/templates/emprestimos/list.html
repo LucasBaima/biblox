@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8"><title>Empréstimos</title>
+<h1>Empréstimos</h1>
+
+{% if messages %}<ul>{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+
+<p><a href="{% url 'livros:registrar_emprestimo' %}">Novo Empréstimo</a></p>
+
+<table border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>ID</th><th>Livro</th><th>Usuário</th>
+      <th>Saída</th><th>Prevista</th><th>Devolução</th><th>Atraso</th><th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in emprestimos %}
+    <tr>
+      <td>{{ e.id }}</td>
+      <td>{{ e.livro.nome }}</td>
+      <td>{{ e.usuario.username }}</td>
+      <td>{{ e.data_saida }}</td>
+      <td>{{ e.data_prevista_devolucao }}</td>
+      <td>{{ e.data_devolucao|default:"—" }}</td>
+      <td>{{ e.dias_atraso }}</td>
+      <td>
+        {% if not e.data_devolucao %}
+          <a href="{% url 'livros:registrar_devolucao' e.id %}">Devolver</a>
+        {% else %} — {% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8">Nenhum empréstimo.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>

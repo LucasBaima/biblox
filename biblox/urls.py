@@ -17,9 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from . import views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("livros/", include("livros.urls"))
+    path('admin/', admin.site.urls),
+    path('', include(('livros.urls', 'livros'), namespace='livros')),  # raiz aponta p/ o app
 ]
+
+

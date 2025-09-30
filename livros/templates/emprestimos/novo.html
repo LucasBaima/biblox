@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8"><title>Novo Empréstimo</title>
+<h1>Novo Empréstimo</h1>
+
+{% if messages %}<ul>{% for m in messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+
+<form method="post">{% csrf_token %}
+  <label>Livro:</label>
+  <select name="livro_id" required>
+    <option value="">--selecione--</option>
+    {% for l in livros %}
+      <option value="{{ l.id }}">{{ l.nome }} — {{ l.autor }} ({{ l.get_status_display }})</option>
+    {% endfor %}
+  </select><br><br>
+
+  <label>Usuário:</label>
+  <select name="usuario_id" required>
+    <option value="">--selecione--</option>
+    {% for u in usuarios %}
+      <option value="{{ u.id }}">{{ u.username }}</option>
+    {% endfor %}
+  </select><br><br>
+
+  <label>Data de Saída (YYYY-MM-DD):</label>
+  <input name="data_saida" placeholder="2025-10-01" required><br><br>
+
+  <label>Data Prevista de Devolução (YYYY-MM-DD):</label>
+  <input name="data_prevista_devolucao" placeholder="2025-10-08" required><br><br>
+
+  <button type="submit">Registrar</button>
+  <a href="{% url 'livros:emprestimos_list' %}">Cancelar</a>
+</form>
