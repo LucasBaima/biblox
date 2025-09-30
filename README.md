@@ -11,6 +11,7 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 - Luís Felipe Furlaneto Lima
 - Juliana van der Linden Mota
 - Vitória Souza Raposo Teixeira
+- Luana Maria Fernandes Gomes
  
 
 🎯 Objetivo  
@@ -43,6 +44,20 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
     <img src="Quadro-Jira.png" alt="Quadro (board) no Jira" width="100%">
   </p>
 
-</details>
+</details> 
+
+## Entregas ✅
+
+<details>
+  <summary><strong>Entrega 02</strong></summary>
+
+  <br>
+  <!-- Links principais da entrega -->
+
+   • **Relatório de Programação em Par** [Docs](https://docs.google.com/document/d/1tlu_FI4Zkk6vHaO8giXaVmJPR4yNHydLY2hY6F6MqOA/edit?usp=sharin)
+ 
+  
+  
+
 
 

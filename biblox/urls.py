@@ -20,7 +20,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(('livros.urls', 'livros'), namespace='livros')),  # raiz aponta p/ o app
+    path('livros/', include(('livros.urls', 'livros'), namespace='livros')),  # rotas do app livros
+    path('', include('usuarios.urls')),  # rotas do app usuários (login/página inicial)
 ]
-
 

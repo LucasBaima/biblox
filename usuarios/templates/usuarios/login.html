@@ -1,0 +1,40 @@
+{% extends "base.html" %} 
+{% block title %}Login Manual{% endblock %}
+
+{% block content %}
+    <h1>Acesso ao Sistema</h1>
+
+    <form method="post" action="{% url 'usuarios:login' %}">
+        {% csrf_token %}
+        
+        {% if erro_login %}
+            <p style="color: red; font-weight: bold;">
+                {{ erro_login }}
+            </p>
+        {% endif %}
+
+        <p>
+            <label for="id_username">Nome de Usuário:</label><br>
+            <input 
+                type="text" 
+                name="username" 
+                id="id_username" 
+                value="{{ dados.username|default_if_none:'' }}"
+                required
+            >
+        </p>
+
+        <p>
+            <label for="id_password">Senha:</label><br>
+            <input 
+                type="password" 
+                name="password" 
+                id="id_password" 
+                required
+            >
+            </p>
+
+        <button type="submit">Entrar</button>
+    </form>
+
+{% endblock content %}

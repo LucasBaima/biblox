@@ -25,7 +25,7 @@
             vertical-align:top 
         }
 
-        /* 5. Ajuste fino para a coluna de Data de Criação (se necessário) */
+        /*  Ajuste fino para a coluna de Data de Criação (se necessário) */
         /* Isso reduz a largura de colunas específicas se a anterior for grande */
         td:nth-child(5) { 
             width: 15%;   
@@ -70,8 +70,11 @@
                     <td>{{livro.autor}}</td>
                     <td>{{livro.isbn}}</td>
                     <td>{{livro.completo}}</td>
-                    <td>{{livro.data_criacao}}</td>
-                    <td><a href= "{% url 'livros:remover' livro.id %}" >Remover</a></td>   
+                    <td>{{livro.data_criacao}}</TD>
+                    
+                    <td><a href="{% url 'livros:editar' livro.id %}">Editar</a></td>
+                    <td><a href= "{% url 'livros:remover' livro.id %}" >Remover</a></td>
+                    <td><a href= "{% url 'livros:registrar_livro' livro.id %}" >Registrar Empréstimo</a></td>   
                      
                 </tr>    
             {% endfor %}
