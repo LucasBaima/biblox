@@ -151,3 +151,48 @@ def editar_livro(request:HttpRequest, id):
     
     
     
+def registrar_livro(request, id):
+    
+    Registro = get_object_or_404(CadastroLivroModel, id=id)
+    
+    context = {'livro_id': id, 'registro': Registro}
+    
+    
+    
+    if request.method == "POST":
+        
+        data_devolucao = request.POST.get('data_devolucao')
+        
+        
+        
+        erros = {}
+        
+        
+        
+        if Registro.emprestado == True:
+            erros['emprestado'] = f'o Livro "{Registro.nome}" já foi emprestado'
+            
+        if not erros and not data_devolucao:
+            erros['data_devolucao'] = 'A data de devolução é obrigatória.'
+
+        if erros:
+            context['erros'] = erros
+            context['dados'] = request.POST
+            
+            return render(request, 'livros/registrarEmprest.html', context)
+            
+        
+            
+        Registro.data_devolucao = data_devolucao
+        Registro.emprestado = True
+        Registro.save()
+        return redirect("livros:home1") 
+        
+    return render(request, 'livros/registrarEmprest.html', context) #caso seja um GET..  apenas apresenta o formulário
+        
+       
+    
+        
+    
+    
+    
