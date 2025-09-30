@@ -21,7 +21,7 @@ from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("livros/", include("livros.urls")),
+    path('', include('livros.urls')),
     path('', include('usuarios.urls'))  # ''  -< Significa a tela incicial
 ]
 
