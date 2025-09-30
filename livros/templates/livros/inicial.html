@@ -73,7 +73,8 @@
                     <td>{{livro.data_criacao}}</TD>
                     
                     <td><a href="{% url 'livros:editar' livro.id %}">Editar</a></td>
-                    <td><a href= "{% url 'livros:remover' livro.id %}" >Remover</a></td>   
+                    <td><a href= "{% url 'livros:remover' livro.id %}" >Remover</a></td>
+                    <td><a href= "{% url 'livros:registrar_livro' livro.id %}" >Registrar Empréstimo</a></td>   
                      
                 </tr>    
             {% endfor %}
