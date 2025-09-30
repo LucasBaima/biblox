@@ -46,7 +46,6 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 
 </details> 
 
-## Entregas ✅
 
 <details>
   <summary><strong>Entrega 02</strong></summary>
