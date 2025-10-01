@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Acervo</title></head>
+<body>
+  <h1>Livros</h1>
+  <p><a href="/livros/cadastrar/">Cadastrar novo</a></p>
+  <ul>
+    {% for l in registros %}
+      <li>
+        {{ l.nome }} — {{ l.autor }}
+        [<a href="/livros/editar/{{ l.id }}/">editar</a>]
+        [<a href="/livros/remover/{{ l.id }}/">remover</a>]
+      </li>
+    {% empty %}
+      <li>Nenhum livro cadastrado.</li>
+    {% endfor %}
+  </ul>
+</body></html>
