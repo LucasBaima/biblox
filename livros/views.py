@@ -6,6 +6,9 @@ from django.utils import timezone
 from django.db import IntegrityError
 from django.contrib.auth import get_user_model
 from django import forms
+from django.db.models import Q
+from django.core.paginator import Paginator
+
 
 from .models import CadastroLivroModel, Emprestimo, Reserva
 
@@ -21,6 +24,51 @@ class LivroForm(forms.ModelForm):
             "isbn": "ISBN (13 dígitos)",
             "completo": "Edição integral (obra completa)",
         }
+
+
+# --------- Catálogo com busca/filtro/ordenação/paginação ---------
+def catalogo(request):
+    # 1) Coletar parâmetros
+    q = (request.GET.get("q") or "").strip()
+    apenas_disponiveis = (request.GET.get("apenas_disponiveis") in ("1", "true", "on"))
+    ordenar = request.GET.get("ordenar", "nome_az")  # nome_az|nome_za|autor_az|autor_za
+    page = request.GET.get("page")
+
+    # 2) Montar queryset
+    qs = CadastroLivroModel.objects.all()
+
+    if q:
+        qs = qs.filter(Q(nome__icontains=q) | Q(autor__icontains=q))
+
+    if apenas_disponiveis:
+        qs = qs.filter(status__iexact="disponivel")
+
+    ordering_map = {
+        "nome_az": "nome",
+        "nome_za": "-nome",
+        "autor_az": "autor",
+        "autor_za": "-autor",
+    }
+    qs = qs.order_by(ordering_map.get(ordenar, "nome"))
+
+    # 3) Paginação
+    paginator = Paginator(qs, 20)  # 20 por página
+    page_obj = paginator.get_page(page)
+
+    # 4) Preservar filtros na paginação
+    params = request.GET.copy()
+    params.pop("page", None)
+    querystring = params.urlencode()
+
+    ctx = {
+        "livros": page_obj,                # iterável no template
+        "page_obj": page_obj,              # controle de paginação
+        "q": q,
+        "ordenar": ordenar,
+        "apenas_disponiveis": apenas_disponiveis,
+        "querystring": querystring,
+    }
+    return render(request, "livros/lista.html", ctx)
 
 
 # ------------------ CRUD de Livros -------------------

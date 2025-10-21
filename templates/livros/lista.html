@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Catálogo de Livros</h1>
+
+<form method="get" style="display:flex; gap:12px; align-items:center; margin:12px 0;">
+  <input type="text" name="q" placeholder="Pesquisar por título (nome) ou autor" value="{{ q }}">
+  <label>
+    <input type="checkbox" name="apenas_disponiveis" {% if apenas_disponiveis %}checked{% endif %}>
+    Apenas disponíveis
+  </label>
+  <select name="ordenar">
+    <option value="nome_az"  {% if ordenar == "nome_az"  %}selected{% endif %}>Título (A→Z)</option>
+    <option value="nome_za"  {% if ordenar == "nome_za"  %}selected{% endif %}>Título (Z→A)</option>
+    <option value="autor_az" {% if ordenar == "autor_az" %}selected{% endif %}>Autor (A→Z)</option>
+    <option value="autor_za" {% if ordenar == "autor_za" %}selected{% endif %}>Autor (Z→A)</option>
+  </select>
+  <button type="submit">Buscar</button>
+</form>
+
+{% if livros %}
+  <table border="1" cellpadding="6" cellspacing="0" width="100%">
+    <thead>
+      <tr><th>Título</th><th>Autor</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for l in livros %}
+      <tr>
+        <td>{{ l.nome }}</td>
+        <td>{{ l.autor }}</td>
+        <td>{{ l.get_status_display }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&{{ querystring }}">« Anterior</a>
+    {% endif %}
+    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&{{ querystring }}">Próxima »</a>
+    {% endif %}
+  </div>
+{% else %}
+  <p><strong>Nenhum livro encontrado</strong>.</p>
+{% endif %}
+{% endblock %}
