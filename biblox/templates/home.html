@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page">
+  <h1 class="title">Bem-vindo ao Biblox</h1>
+
+  <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card"><div class="card-body">
+      <div style="font-size:14px; color:#475569;">Livros no catálogo</div>
+      <div style="font-size:28px; font-weight:800; margin-top:4px;">{{ total }}</div>
+    </div></div>
+
+    <div class="card"><div class="card-body">
+      <div style="font-size:14px; color:#475569;">Disponíveis</div>
+      <div style="font-size:28px; font-weight:800; margin-top:4px;">{{ disponiveis }}</div>
+    </div></div>
+
+    <div class="card"><div class="card-body">
+      <div style="font-size:14px; color:#475569;">Emprestados</div>
+      <div style="font-size:28px; font-weight:800; margin-top:4px;">{{ emprestados }}</div>
+    </div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 2fr 1fr; margin-top:16px;">
+    <div class="card"><div class="card-body">
+      <h2 style="margin:0 0 12px; font-size:18px;">Ações rápidas</h2>
+      <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+        <a class="btn" href="/livros/" style="text-align:center;">📚 Ver catálogo</a>
+        <a class="btn" href="/livros/cadastrar/" style="text-align:center;">➕ Cadastrar livro</a>
+        <a class="btn" href="/livros/emprestimos/" style="text-align:center;">🔄 Empréstimos</a>
+        <a class="btn" href="/livros/reservas/" style="text-align:center;">📎 Minhas reservas</a>
+      </div>
+    </div></div>
+
+    <div class="card"><div class="card-body">
+      <h2 style="margin:0 0 12px; font-size:18px;">Últimos livros</h2>
+      {% if recentes %}
+        <ul style="list-style:none; padding:0; margin:0;">
+          {% for l in recentes %}
+          <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f1f5f9;">
+            <span title="{{ l.nome }}"><strong>{{ l.nome }}</strong> <span style="color:#64748b;">— {{ l.autor }}</span></span>
+            {% if l.status == "disponivel" %}
+              <span class="status disponivel">Disponível</span>
+            {% else %}
+              <span class="status emprestado">Emprestado</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty">Sem livros cadastrados ainda.</div>
+      {% endif %}
+    </div></div>
+  </div>
+</div>
+
+{% endblock %}

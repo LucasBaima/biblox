@@ -5,7 +5,7 @@ app_name = "livros"
 
 urlpatterns = [
     # Catálogo (pesquisa + filtro + ordenação + paginação)
-    path("", views.catalogo, name="lista"),                 # /livros/  → NOVA LISTA
+    path("", views.catalogo, name="lista"),                 # /livros/
     path("home/", views.home, name="home1"),                # mantém sua home antiga
 
     # CRUD de livros

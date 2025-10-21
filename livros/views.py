@@ -13,6 +13,7 @@ from django.core.paginator import Paginator
 from .models import CadastroLivroModel, Emprestimo, Reserva
 
 
+
 # --------- Form para cadastrar/editar livros ---------
 class LivroForm(forms.ModelForm):
     class Meta:
@@ -69,6 +70,26 @@ def catalogo(request):
         "querystring": querystring,
     }
     return render(request, "livros/lista.html", ctx)
+
+
+# --------- Home / Dashboard ---------
+def homepage(request):
+    # números rápidos
+    total = CadastroLivroModel.objects.count()
+    disponiveis = CadastroLivroModel.objects.filter(status__iexact="disponivel").count()
+    emprestados = CadastroLivroModel.objects.filter(status__iexact="emprestado").count()
+
+    # últimos livros cadastrados (5)
+    recentes = CadastroLivroModel.objects.order_by("-id")[:5]
+
+    ctx = {
+        "total": total,
+        "disponiveis": disponiveis,
+        "emprestados": emprestados,
+        "recentes": recentes,
+    }
+    return render(request, "home.html", ctx)
+
 
 
 # ------------------ CRUD de Livros -------------------
