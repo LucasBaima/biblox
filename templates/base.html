@@ -1,23 +1,46 @@
 {% load static %}
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
 <head>
-    <link rel="stylesheet" href="{% static 'css/site.css' %}">
-    <meta charset="UTF-8">
-    <title>{% block title %}Minha Aplicação de Livros{% endblock %}</title>
-    <style>
-        /* CSS Básico ou CSS interno para todas as páginas */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Biblox{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <div id="content">
-        {% block content %}
-        {% endblock %}
-    </div>
+
+  <!-- Navbar -->
+  <header class="header">
+    <nav class="navbar">
+      <div class="brand"><a href="/">Biblox</a></div>
+      <div class="navlinks">
+        <a href="/livros/" class="{% if request.path|slice:':8' == '/livros/' or request.path == '/livros' %}active{% endif %}">Catálogo</a>
+        <a href="/livros/cadastrar/" class="{% if '/livros/cadastrar' in request.path %}active{% endif %}">Cadastrar</a>
+        <a href="/livros/emprestimos/" class="{% if '/livros/emprestimos' in request.path %}active{% endif %}">Empréstimos</a>
+        <a href="/livros/reservas/" class="{% if '/livros/reservas' in request.path %}active{% endif %}">Reservas</a>
+        <a href="/admin/">Admin</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Conteúdo principal -->
+  <main class="site-wrap">
+    {% if messages %}
+      {% for m in messages %}
+        <div class="alert {{ m.tags|default:'info' }}">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Rodapé (sem link de GitHub de usuário) -->
+  <footer class="footer">
+  Biblox • {% now "Y" %}
+</footer>
+
+
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
