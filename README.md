@@ -89,28 +89,24 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 
   <br>
 
-  <!-- Links principais da entrega -->
-  • **Testes de Sistema E2E Automatizados (Screencast):** [Link para o YouTube](https://youtu.be/SEU_ID)  
-  • **Quadro/Backlog:** [Jira](https://cesar-team-hhxwcu7v.atlassian.net/jira/software/projects/PF/boards/34)
+  ## 🎬 Screencasts
+
+  • [Testes Automatizados](https://youtu.be/SEU_ID)  
+  • [CI/CD](https://youtu.be/SEU_ID_CI)  
+  • [Figma](https://www.figma.com/design/VzZrdK6JLIkQFwWEWpDcdv/Biblox?node-id=0-1&t=VK82sCdZSHeBcCon-1)  
+  • [Deploy](https://youtu.be/SEU_ID_DEPLOY)
 
   <br>
 
-  ### 🧪 Testes E2E Automatizados
-  > Implementação do fluxo de **renovação de empréstimo (História 9)** com **pytest + pytest-django + Playwright**, validando login, navegação e ação de renovação.
+  ## 📊 Jira — Backlog e Quadro
 
   <p align="center">
-    <a href="https://youtu.be/SEU_ID">
-      <img src="https://img.youtube.com/vi/SEU_ID/0.jpg" alt="Screencast dos testes E2E - Entrega 3" width="80%">
-    </a>
+    <img src="jira-backlog-entrega3.png" alt="Backlog Jira - Entrega 3" width="100%">
   </p>
 
-  <br>
-
-  ### 🧩 Organização no JIRA
-  > Abaixo, o quadro do **JIRA** com o acompanhamento das tarefas e histórias da Entrega 3.
-
   <p align="center">
-    <img src="jira-entrega3.png" alt="Quadro JIRA - Entrega 3" width="100%">
+    <img src="jira-quadro-entrega3.png" alt="Quadro Jira - Entrega 3" width="100%">
   </p>
 
 </details>
+
