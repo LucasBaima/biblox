@@ -8,9 +8,8 @@ from django.contrib.auth import get_user_model
 from django import forms
 from django.db.models import Q
 from django.core.paginator import Paginator
-
-
 from .models import CadastroLivroModel, Emprestimo, Reserva
+from datetime import timedelta
 
 
 
@@ -279,3 +278,84 @@ def cancelar_reserva(request, pk: int):
 
     messages.success(request, "Reserva cancelada")
     return redirect("livros:minhas_reservas")
+
+
+@login_required
+def minha_area_de_emprestimos(request):
+    """
+    
+    """
+    emprestimos = Emprestimo.objects.filter(
+        usuario=request.user, 
+        data_devolucao__isnull=True 
+    ).select_related('livro').order_by('data_prevista_devolucao')
+
+    context = {
+        "emprestimos_do_usuario": emprestimos,
+    }
+    return render(request, 'emprestimos/minha_area_de_emprestimos.html', context)
+
+
+
+
+@login_required
+def solicitar_renovacao(request, emprestimo_id):
+    emprestimo = get_object_or_404(
+        Emprestimo, 
+        id=emprestimo_id, 
+        usuario=request.user,
+        data_devolucao__isnull=True 
+    )
+    
+    livro_id = emprestimo.livro.id
+    MAX_RENOVACOES = 1
+
+    pode_renovar_modelo, motivo_modelo = emprestimo.pode_renovar(max_renovacoes=MAX_RENOVACOES)
+        
+    if not pode_renovar_modelo:
+        messages.warning(request, motivo_modelo)
+        return redirect('livros:minha_area_de_emprestimos')
+
+
+  
+    reserva_em_conflito = Reserva.objects.filter(
+        livro=emprestimo.livro,
+        status__in=['ativa', 'pronta'],
+    ).exclude(usuario=request.user).exists() 
+    
+    if reserva_em_conflito:
+        messages.error(request, f"O livro '{emprestimo.livro}' está reservado por outro usuário. Renovação não permitida.")
+        return redirect('livros:minha_area_de_emprestimos')
+    
+    
+    # --- 3. Processamento (POST - Sem usar forms) ---
+    if request.method == 'POST':
+        livro_id_confirmado = request.POST.get('livro_id_confirmacao')
+        
+        try:
+            livro_id_confirmado = int(livro_id_confirmado)
+        except (ValueError, TypeError):
+            messages.error(request, "ID do livro inválido. Tente novamente.")
+            return redirect('livros:solicitar_renovacao', emprestimo_id=emprestimo.id)
+
+        if livro_id_confirmado == livro_id:
+            try:
+                nova_data = emprestimo.aplicar_renovacao(periodo_dias=7)
+                messages.success(request, f"Renovação aplicada! Nova data: {nova_data.strftime('%d/%m/%Y')}.")
+                return redirect('livros:minha_area_de_emprestimos') 
+            
+            except Exception as e:
+                messages.error(request, f"Falha ao renovar: {e}")
+                return redirect('livros:solicitar_renovacao', emprestimo_id=emprestimo.id)
+        else:
+            messages.error(request, "O ID do livro não corresponde.")
+    
+    # 4. Renderização (GET)
+    nova_data_prevista = emprestimo.data_prevista_devolucao + timedelta(days=7) 
+    
+    context = {
+        'emprestimo': emprestimo,
+        'livro_id_original': livro_id,
+        'nova_data_prevista': nova_data_prevista
+    }
+    return render(request, 'emprestimos/confirmar_renovacao.html', context)
