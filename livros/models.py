@@ -25,13 +25,20 @@ class CadastroLivroModel(models.Model):
 class Emprestimo(models.Model):
     livro = models.ForeignKey(CadastroLivroModel, on_delete=models.PROTECT, related_name='emprestimos')
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='emprestimos')
-    data_saida = models.DateField()
+    
+    # OTIMIZAÇÃO: Define a data de saída automaticamente
+    data_saida = models.DateField(default=timezone.now)
+    
     data_prevista_devolucao = models.DateField()
     data_devolucao = models.DateField(null=True, blank=True)
-    dias_atraso = models.IntegerField(default=0)
+    
+    # NOVO CAMPO: Para contar quantas vezes foi renovado
+    renovacao_count = models.PositiveSmallIntegerField(default=0)
+    
+    # Campo 'dias_atraso' removido e substituído pela propriedade abaixo
+    # dias_atraso = models.IntegerField(default=0) <--- REMOVIDO/SUBSTITUÍDO
 
     class Meta:
-        # Impede dois empréstimos ATIVOS (sem devolução) para o mesmo livro
         constraints = [
             models.UniqueConstraint(
                 fields=['livro'],
@@ -40,22 +47,66 @@ class Emprestimo(models.Model):
             )
         ]
 
+    # PROPRIEDADE: Calcula o atraso dinamicamente
+    @property
+    def dias_atraso(self):
+        hoje = timezone.now().date()
+        
+        if self.data_devolucao:
+            # Se devolvido, usa a data de devolução registrada
+            dias = (self.data_devolucao - self.data_prevista_devolucao).days
+        elif self.data_devolucao is None and self.data_prevista_devolucao < hoje:
+            # Se ativo e atrasado, calcula o atraso até hoje
+            dias = (hoje - self.data_prevista_devolucao).days
+        else:
+            return 0
+        
+        return max(0, dias)
+
+    @property
+    def is_active(self):
+        return self.data_devolucao is None
+
+    # NOVO MÉTODO: Regras de negócio da renovação
+    def pode_renovar(self, max_renovacoes=1):
+        if not self.is_active:
+            return False, "O empréstimo já foi devolvido."
+        
+        if self.dias_atraso > 0:
+            return False, "O empréstimo está atrasado e não pode ser renovado."
+        
+        if self.renovacao_count >= max_renovacoes:
+            return False, f"O limite de {max_renovacoes} renovação(ões) foi atingido."
+        
+        return True, "Pode ser renovado."
+
+    # NOVO MÉTODO: Aplica a renovação
+    def aplicar_renovacao(self, periodo_dias=7):
+        pode, motivo = self.pode_renovar()
+        if not pode:
+            # Levanta uma exceção para a view capturar
+            raise Exception(f"Não foi possível renovar: {motivo}") 
+
+        self.data_prevista_devolucao += timedelta(days=periodo_dias)
+        self.renovacao_count += 1
+        self.save(update_fields=['data_prevista_devolucao', 'renovacao_count'])
+        return self.data_prevista_devolucao
+    
+    # MÉTODO EXISTENTE: Ajustado para usar a nova propriedade
     def registrar_devolucao(self, data_devolucao):
         from .models import Reserva  # import tardio para evitar ciclos
         self.data_devolucao = data_devolucao
-        atraso = (self.data_devolucao - self.data_prevista_devolucao).days
-        self.dias_atraso = atraso if atraso > 0 else 0
-        self.save(update_fields=['data_devolucao', 'dias_atraso'])
+        # O campo 'dias_atraso' foi removido, a propriedade self.dias_atraso calcula o valor.
+        # Nenhuma atualização de campo é necessária aqui, apenas a data_devolucao.
+        self.save(update_fields=['data_devolucao']) 
 
         # livro volta a ficar "disponível"
         self.livro.status = 'disponivel'
         self.livro.save(update_fields=['status'])
 
-        # após devolução: expira reservas vencidas e promove a primeira da fila
         Reserva.expirar_vencidas()
         Reserva.promover_primeira(self.livro)
-        return self.dias_atraso
-
+        return self.dias_atraso # Retorna o valor da propriedade calculada
 
 # ----------------------------
 # RESERVA (História 3)

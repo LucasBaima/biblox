@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Empréstimos{% endblock %}
+
+{% block content %}
+<div class="page">
+    <h1 class="title">Meus Empréstimos Ativos</h1>
+    
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if emprestimos_do_usuario %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Livro</th>
+                    <th>Autor</th>
+                    <th>Data Empréstimo</th>
+                    <th>Devolução Prevista</th>
+                    <th>Renovações Usadas</th>
+                    <th>Atraso (dias)</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in emprestimos_do_usuario %}
+                <tr>
+                    <td>{{ emp.livro.nome }}</td>
+                    <td>{{ emp.livro.autor }}</td>
+                    <td>{{ emp.data_saida|date:"d/m/Y" }}</td>
+                    <td class="{% if emp.dias_atraso > 0 %}text-danger font-weight-bold{% endif %}">
+                        {{ emp.data_prevista_devolucao|date:"d/m/Y" }}
+                    </td>
+                    <td>{{ emp.renovacao_count }}</td>
+                    <td class="{% if emp.dias_atraso > 0 %}text-danger font-weight-bold{% endif %}">
+                        {{ emp.dias_atraso }}
+                    </td>
+                    
+                    <td>
+                        {# Chama o método pode_renovar() no modelo e recebe (True/False, Motivo) #}
+                        {% with pode_renovar_tuple=emp.pode_renovar %}
+                            {% if pode_renovar_tuple.0 %}
+                                <a href="{% url 'livros:solicitar_renovacao' emprestimo_id=emp.id %}" class="btn btn-sm btn-success">Renovar</a>
+                            {% else %}
+                                <button disabled class="btn btn-sm btn-secondary" title="{{ pode_renovar_tuple.1 }}">
+                                    Renovar
+                                </button>
+                                <span class="text-small text-muted">{{ pode_renovar_tuple.1 }}</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">Você não possui empréstimos ativos no momento.</div>
+    {% endif %}
+</div>
+{% endblock %}

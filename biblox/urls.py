@@ -4,6 +4,7 @@ from livros.views import homepage  # homepage em "/"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("livros/", include("livros.urls")),
-    path("", homepage, name="homepage"),  # página inicial
+    path("livros/", include("livros.urls", namespace='livros')),
+    path("", homepage, name="homepage"),  
+    path("accounts/", include('django.contrib.auth.urls')),
 ]

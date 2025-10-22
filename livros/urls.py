@@ -5,7 +5,7 @@ app_name = "livros"
 
 urlpatterns = [
     # Catálogo (pesquisa + filtro + ordenação + paginação)
-    path("", views.catalogo, name="lista"),                 # /livros/
+    path("", views.catalogo, name="catalogo"),                 # /livros/
     path("home/", views.home, name="home1"),                # mantém sua home antiga
 
     # CRUD de livros
@@ -17,6 +17,8 @@ urlpatterns = [
     path("emprestimos/", views.emprestimos_list, name="emprestimos_list"),
     path("emprestimos/novo/", views.registrar_emprestimo, name="registrar_emprestimo"),
     path("emprestimos/devolver/<int:pk>/", views.registrar_devolucao, name="registrar_devolucao"),
+    path('emprestimos/meus/', views.minha_area_de_emprestimos, name='minha_area_de_emprestimos'),
+    path('emprestimos/<int:emprestimo_id>/renovar/', views.solicitar_renovacao, name='solicitar_renovacao'),
 
     # Reservas
     path("reservas/", views.minhas_reservas, name="minhas_reservas"),
