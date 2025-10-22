@@ -32,7 +32,7 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
   • **Histórias (Docs):**  [Docs](https://docs.google.com/document/d/1b9qbNjpCiyQE_ync4hT_Wn1JKFUz-lr83mvTd-sLNLU/edit?usp=sharing)  
   • **Jira (quadro/backlog):**  [Jira](https://projeto-fds-gp3.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)  
   • **Screencast (vídeo):** [Link para o youtube](https://www.youtube.com/watch?v=FVJNxlJSBmc)  
-  
+  • **Figma:** [Figma](https://www.figma.com/design/VzZrdK6JLIkQFwWEWpDcdv/Biblox?node-id=0-1&t=VK82sCdZSHeBcCon-1 )
   
 
   <!-- Evidências (duas imagens do Jira) -->
@@ -92,8 +92,7 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
   ## 🎬 Screencasts
 
   • [Testes Automatizados](https://youtu.be/SEU_ID)  
-  • [CI/CD](https://youtu.be/SEU_ID_CI)  
-  • [Figma](https://www.figma.com/design/VzZrdK6JLIkQFwWEWpDcdv/Biblox?node-id=0-1&t=VK82sCdZSHeBcCon-1)  
+  • [CI/CD](https://youtu.be/SEU_ID_CI)   
   • [Deploy](https://youtu.be/SEU_ID_DEPLOY)
 
   <br>
