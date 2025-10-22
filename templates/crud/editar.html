@@ -1,11 +1,41 @@
-<!doctype html>
-<html><head><meta charset="utf-8"><title>Editar Livro</title></head>
-<body>
-  <h1>Editar Livro</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Salvar alterações</button>
-    <a href="/livros/">Voltar</a>
-  </form>
-</body></html>
+{% extends "base.html" %}
+{% block title %}Editar livro • Biblox{% endblock %}
+{% block content %}
+
+<div class="page">
+  <h1 class="title">Editar livro</h1>
+
+  <div class="card"><div class="card-body">
+    <form method="post" class="grid">
+      {% csrf_token %}
+
+      <div class="form-row">
+        <div>
+          <label for="id_nome">Nome</label>
+          {{ form.nome }}
+        </div>
+        <div>
+          <label for="id_autor">Autor</label>
+          {{ form.autor }}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="id_isbn">ISBN</label>
+          {{ form.isbn }}
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:26px;">
+          {{ form.completo }} <label for="id_completo">Edição integral</label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" type="submit">Salvar alterações</button>
+        <a class="btn ghost" href="{% url 'livros:home1' %}">Cancelar</a>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+{% endblock %}

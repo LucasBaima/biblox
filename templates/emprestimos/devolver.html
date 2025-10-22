@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Registrar devolução • Biblox{% endblock %}
+{% block content %}
+
+<div class="page">
+  <h1 class="title">Registrar devolução</h1>
+
+  <div class="card"><div class="card-body">
+    <p><strong>Livro:</strong> {{ emprestimo.livro.nome }}</p>
+    <p><strong>Usuário:</strong> {{ emprestimo.usuario.username }}</p>
+    <p><strong>Data de saída:</strong> {{ emprestimo.data_saida|date:"d/m/Y" }}</p>
+    <p><strong>Data prevista para devolução:</strong> {{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}</p>
+
+    <form method="post" class="grid" style="margin-top:16px;">
+      {% csrf_token %}
+      <div>
+        <label for="data_devolucao">Data efetiva de devolução:</label>
+        <input type="date" name="data_devolucao" id="data_devolucao">
+      </div>
+      <div class="form-actions">
+        <button class="btn" type="submit">Confirmar devolução</button>
+        <a class="btn ghost" href="{% url 'livros:emprestimos_list' %}">Cancelar</a>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+{% endblock %}

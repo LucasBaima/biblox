@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Minhas reservas • Biblox{% endblock %}
+{% block content %}
+
+<div class="page">
+  <h1 class="title">Minhas reservas</h1>
+
+  <div class="table-wrap card" style="margin-top:8px;">
+    <div class="card-body" style="padding:0;">
+      <table>
+        <thead>
+          <tr>
+            <th>Livro</th>
+            <th>Status</th>
+            <th>Criada em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reservas %}
+          <tr>
+            <td>{{ r.livro.nome }}</td>
+            <td>
+              {% if r.status == 'ativa' %}
+                <span class="status disponivel">Ativa</span>
+              {% elif r.status == 'pronta' %}
+                <span class="status good">Pronta p/ retirada</span>
+              {% elif r.status == 'cancelada' %}
+                <span class="status emprestado">Cancelada</span>
+              {% elif r.status == 'expirada' %}
+                <span class="status emprestado">Expirada</span>
+              {% elif r.status == 'concluida' %}
+                <span class="status emprestado">Concluída</span>
+              {% endif %}
+            </td>
+            <td>{{ r.criada_em|date:"d/m/Y H:i" }}</td>
+            <td>
+              {% if r.status in 'ativa pronta' %}
+                <form method="post" action="{% url 'livros:cancelar_reserva' r.id %}" onsubmit="return confirm('Cancelar esta reserva?');">
+                  {% csrf_token %}
+                  <button class="btn ghost" type="submit">Cancelar</button>
+                </form>
+              {% else %}
+                <span style="color:#64748b; font-size:14px;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="padding:16px;">Nenhuma reserva encontrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

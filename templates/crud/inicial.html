@@ -1,17 +1,54 @@
-<!doctype html>
-<html><head><meta charset="utf-8"><title>Acervo</title></head>
-<body>
-  <h1>Livros</h1>
-  <p><a href="/livros/cadastrar/">Cadastrar novo</a></p>
-  <ul>
-    {% for l in registros %}
-      <li>
-        {{ l.nome }} — {{ l.autor }}
-        [<a href="/livros/editar/{{ l.id }}/">editar</a>]
-        [<a href="/livros/remover/{{ l.id }}/">remover</a>]
-      </li>
-    {% empty %}
-      <li>Nenhum livro cadastrado.</li>
-    {% endfor %}
-  </ul>
-</body></html>
+{% extends "base.html" %}
+{% block title %}Livros (CRUD) • Biblox{% endblock %}
+{% block content %}
+
+<div class="page">
+  <div class="grid two" style="grid-template-columns:1fr auto;">
+    <h1 class="title">Livros (CRUD)</h1>
+    <div>
+      <a href="{% url 'livros:cadastrar_livro' %}" class="btn">+ Novo livro</a>
+      <a href="/livros/" class="btn ghost">Ir ao Catálogo</a>
+    </div>
+  </div>
+
+  <div class="table-wrap card" style="margin-top:8px;">
+    <div class="card-body" style="padding:0;">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40%;">Título</th>
+            <th style="width:30%;">Autor</th>
+            <th style="width:15%;">Status</th>
+            <th style="width:15%;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in registros %}
+          <tr>
+            <td>{{ l.nome }}</td>
+            <td>{{ l.autor }}</td>
+            <td>
+              {% if l.status == 'disponivel' %}
+                <span class="status disponivel">Disponível</span>
+              {% else %}
+                <span class="status emprestado">Emprestado</span>
+              {% endif %}
+            </td>
+            <td style="display:flex; gap:8px;">
+              <a class="btn secondary" href="{% url 'livros:editar_livro' l.id %}">Editar</a>
+              <form method="post" action="{% url 'livros:remover_livro' l.id %}" onsubmit="return confirm('Remover este livro?');">
+                {% csrf_token %}
+                <button class="btn ghost" type="submit">Remover</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="padding:16px;">Nenhum livro cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

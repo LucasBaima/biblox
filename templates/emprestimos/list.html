@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Empréstimos • Biblox{% endblock %}
+{% block content %}
+
+<div class="page">
+  <div class="grid two" style="grid-template-columns:1fr auto;">
+    <h1 class="title">Empréstimos</h1>
+    <a href="{% url 'livros:registrar_emprestimo' %}" class="btn">+ Novo empréstimo</a>
+  </div>
+
+  <div class="table-wrap card" style="margin-top:8px;">
+    <div class="card-body" style="padding:0;">
+      <table>
+        <thead>
+          <tr>
+            <th>Livro</th>
+            <th>Usuário</th>
+            <th>Data de Saída</th>
+            <th>Prevista Devolução</th>
+            <th>Data Devolução</th>
+            <th>Atraso</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in emprestimos %}
+          <tr>
+            <td>{{ e.livro.nome }}</td>
+            <td>{{ e.usuario.username }}</td>
+            <td>{{ e.data_saida|date:"d/m/Y" }}</td>
+            <td>{{ e.data_prevista_devolucao|date:"d/m/Y" }}</td>
+            <td>
+              {% if e.data_devolucao %}
+                {{ e.data_devolucao|date:"d/m/Y" }}
+              {% else %}
+                <span class="status emprestado">Pendente</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if e.dias_atraso > 0 %}
+                <span class="status emprestado">{{ e.dias_atraso }} dias</span>
+              {% else %}
+                <span class="status disponivel">OK</span>
+              {% endif %}
+            </td>
+            <td>
+  {% if not e.data_devolucao %}
+    {% if request.user.is_staff or request.user == e.usuario %}
+      <a class="btn secondary" href="{% url 'livros:registrar_devolucao' e.id %}">
+        Registrar devolução
+      </a>
+
+      {# Regras para habilitar/desabilitar "Renovar" #}
+      {% if e.dias_atraso > 0 %}
+        <span class="btn" style="margin-left:4px; pointer-events:none; opacity:.5;" title="Não pode renovar: empréstimo em atraso">
+          Renovar
+        </span>
+      {% elif e.renovacao_count|default:0 >= 1 %}
+        <span class="btn" style="margin-left:4px; pointer-events:none; opacity:.5;" title="Limite de 1 renovação atingido">
+          Renovar
+        </span>
+      {% else %}
+        <a class="btn" href="{% url 'livros:solicitar_renovacao' e.id %}" style="margin-left:4px;">
+          Renovar
+        </a>
+      {% endif %}
+
+    {% else %}
+      <span style="color:#64748b; font-size:14px;">Sem permissão</span>
+    {% endif %}
+  {% else %}
+    <span style="color:#64748b; font-size:14px;">Devolvido</span>
+  {% endif %}
+</td>
+
+
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" style="padding:16px;">Nenhum empréstimo registrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

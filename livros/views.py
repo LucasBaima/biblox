@@ -359,3 +359,84 @@ def solicitar_renovacao(request, emprestimo_id):
         'nova_data_prevista': nova_data_prevista
     }
     return render(request, 'emprestimos/confirmar_renovacao.html', context)
+
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from datetime import datetime
+from .models import Emprestimo
+
+@login_required
+def emprestimo_detalhe(request, pk):
+    """Mostra os detalhes de um empréstimo e o botão de renovação."""
+    emprestimo = get_object_or_404(Emprestimo, pk=pk)
+    return render(request, "livros/emprestimo_detalhe.html", {"emprestimo": emprestimo})
+
+@login_required
+def renovar_emprestimo(request, pk):
+    """Tela e ação para renovar um empréstimo."""
+    emprestimo = get_object_or_404(Emprestimo, pk=pk)
+
+    # segurança: só o usuário dono ou staff pode renovar
+    if not (request.user.is_staff or request.user == emprestimo.usuario):
+        messages.error(request, "Você não tem permissão para renovar este empréstimo.")
+        return redirect(reverse("emprestimo_detalhe", args=[emprestimo.pk]))
+
+    if request.method == "POST":
+        # tenta aplicar a renovação (usa método do model)
+        try:
+            emprestimo.aplicar_renovacao()
+        except Exception as e:
+            messages.error(request, str(e))
+        else:
+            messages.success(request, "Empréstimo renovado com sucesso!")
+        return redirect(reverse("emprestimo_detalhe", args=[emprestimo.pk]))
+
+    # se for GET, mostra as infos
+    pode, msg = emprestimo.pode_renovar()
+    return render(
+        request,
+        "livros/renovar_emprestimo.html",
+        {"emprestimo": emprestimo, "pode": pode, "motivo": msg},
+    )
+
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.urls import reverse
+from .models import Emprestimo
+
+@login_required
+def solicitar_renovacao(request, emprestimo_id):
+    """
+    Tela + ação de renovação:
+    - GET  -> mostra a confirmação se pode renovar
+    - POST -> aplica a renovação chamando Emprestimo.aplicar_renovacao()
+    """
+    emprestimo = get_object_or_404(Emprestimo, pk=emprestimo_id)
+
+    # Só o dono do empréstimo ou staff pode renovar
+    if not (request.user.is_staff or request.user == emprestimo.usuario):
+        messages.error(request, "Você não tem permissão para renovar este empréstimo.")
+        return redirect(reverse("livros:minha_area_de_emprestimos"))
+
+    if request.method == "POST":
+        try:
+            # Chama a regra de negócio que já existe no model
+            emprestimo.aplicar_renovacao()  # por padrão +7 dias e conta renovação
+        except Exception as e:
+            messages.error(request, str(e))
+        else:
+            messages.success(request, "Empréstimo renovado com sucesso!")
+        # Para onde voltar depois? Escolhi a sua página "minha área".
+        return redirect(reverse("livros:minha_area_de_emprestimos"))
+
+    # GET: mostra se pode renovar e o motivo caso não
+    pode, motivo = emprestimo.pode_renovar()
+    contexto = {
+        "emprestimo": emprestimo,
+        "pode": pode,
+        "motivo": motivo,
+    }
+    return render(request, "livros/solicitar_renovacao.html", contexto)

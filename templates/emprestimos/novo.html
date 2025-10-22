@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Novo empréstimo • Biblox{% endblock %}
+{% block content %}
+
+<div class="page">
+  <h1 class="title">Registrar novo empréstimo</h1>
+
+  <div class="card"><div class="card-body">
+    <form method="post" class="grid">
+      {% csrf_token %}
+
+      <div class="form-row">
+        <div>
+          <label for="livro">Livro</label>
+          <select name="livro_id" id="livro">
+            <option value="">Selecione um livro...</option>
+            {% for l in livros %}
+              <option value="{{ l.id }}">{{ l.nome }} — {{ l.autor }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="usuario">Usuário</label>
+          <select name="usuario_id" id="usuario">
+            <option value="">Selecione um usuário...</option>
+            {% for u in usuarios %}
+              <option value="{{ u.id }}">{{ u.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="data_saida">Data de saída</label>
+          <input type="date" name="data_saida" id="data_saida">
+        </div>
+        <div>
+          <label for="data_prevista_devolucao">Data prevista para devolução</label>
+          <input type="date" name="data_prevista_devolucao" id="data_prevista_devolucao">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" type="submit">Registrar</button>
+        <a class="btn ghost" href="{% url 'livros:emprestimos_list' %}">Cancelar</a>
+      </div>
+    </form>
+  </div></div>
+</div>
+
+{% endblock %}

@@ -1,9 +1,10 @@
-/* ========= Tema global ========= */
+/* ====== Tema global (cores e base) ====== */
 :root{
-  --bg:#f6f7fb; --card:#fff; --muted:#64748b; --text:#0f172a;
+  --bg:#f6f7fb; --card:#ffffff; --muted:#64748b; --text:#0f172a;
   --line:#e5e7eb; --line-2:#f1f5f9;
   --brand:#2563eb; --brand-2:#1d4ed8;
   --good-bg:#ecfdf5; --good:#065f46; --bad-bg:#fef2f2; --bad:#991b1b;
+  --warn-bg:#fefce8; --warn:#854d0e;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -13,41 +14,56 @@ body{
 }
 a{color:var(--brand); text-decoration:none}
 a:hover{text-decoration:underline}
+h1,h2,h3{margin:0 0 12px}
 
-/* ========= Layout base ========= */
-.site-wrap{max-width:1100px; margin:0 auto; padding:24px 16px}
-.header{
-  background:var(--card); border-bottom:1px solid var(--line);
-}
+/* ====== Layout base ====== */
+.header{background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:30}
 .navbar{max-width:1100px; margin:0 auto; padding:12px 16px; display:flex; gap:16px; align-items:center; justify-content:space-between}
-.brand{font-weight:800; letter-spacing:.3px}
-.navlinks{display:flex; gap:12px; flex-wrap:wrap}
-.navlinks a{padding:6px 10px; border-radius:8px}
+.brand a{font-weight:800; letter-spacing:.3px; color:var(--text); text-decoration:none}
+.navlinks{display:flex; gap:8px; flex-wrap:wrap}
+.navlinks a{padding:8px 10px; border-radius:8px; color:#0f172a; text-decoration:none}
 .navlinks a:hover{background:var(--line-2)}
+.navlinks a.active{background:#e0e7ff; border:1px solid #c7d2fe}
 
-/* ========= Utilitários ========= */
+.site-wrap{max-width:1100px; margin:0 auto; padding:24px 16px}
+.footer{border-top:1px solid var(--line); padding:16px; color:var(--muted); text-align:center}
+
+/* ====== Componentes ====== */
 .page{max-width:960px; margin:24px auto; padding:0 16px}
 .title{font-size:28px; margin:8px 0 16px}
 .card{background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.04)}
 .card-body{padding:16px}
 .grid{display:grid; gap:12px}
+
 .btn{
-  height:40px; padding:0 16px; border-radius:8px; border:0; background:var(--brand); color:#fff; cursor:pointer;
+  height:40px; padding:0 16px; border-radius:8px; border:0; background:var(--brand); color:#fff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
 }
 .btn:hover{background:var(--brand-2)}
+.btn.secondary{background:#334155}
+.btn.secondary:hover{background:#1f2937}
+.btn.ghost{background:transparent; color:var(--brand); border:1px solid var(--brand)}
+.btn.ghost:hover{background:#eef2ff}
 
-/* ========= Formulários ========= */
+/* ====== Mensagens (Django messages) ====== */
+.alert{border-radius:10px; padding:12px 14px; margin-bottom:12px; border:1px solid var(--line)}
+.alert.info{background:#eff6ff; border-color:#bfdbfe; color:#1e3a8a}
+.alert.success{background:var(--good-bg); border-color:#bbf7d0; color:var(--good)}
+.alert.warning{background:var(--warn-bg); border-color:#fde68a; color:var(--warn)}
+.alert.error{background:var(--bad-bg); border-color:#fecaca; color:var(--bad)}
+
+/* ====== Formulários ====== */
+label{font-size:14px; color:#475569}
 input[type="text"], input[type="date"], input[type="number"], input[type="email"], input[type="password"], select, textarea{
   height:40px; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; outline:none; background:#fff; width:100%;
 }
 textarea{height:auto; min-height:120px}
 input:focus, select:focus, textarea:focus{border-color:var(--brand); box-shadow:0 0 0 3px rgba(37,99,235,.15)}
 .form-row{display:grid; gap:12px; grid-template-columns:1fr 1fr}
-label{font-size:14px; color:#475569}
+.form-actions{display:flex; gap:8px; margin-top:12px}
 
-/* ========= Tabelas ========= */
+/* ====== Tabelas ====== */
 .table-wrap{overflow:auto; margin-top:12px}
-table{width:100%; border-collapse:collapse}
+table{width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden}
 thead th{
   text-align:left; font-weight:600; font-size:14px; color:#475569;
   border-bottom:1px solid var(--line); padding:10px 12px; background:#f8fafc;
@@ -55,7 +71,7 @@ thead th{
 tbody td{padding:12px; border-bottom:1px solid var(--line-2)}
 tbody tr:hover{background:#f8fafc}
 
-/* ========= Páginação ========= */
+/* ====== Páginação ====== */
 .pagination{display:flex; gap:8px; align-items:center; justify-content:center; margin:16px 0 4px}
 .pagination a, .pagination span.badge{
   padding:6px 10px; border-radius:8px; border:1px solid var(--line); text-decoration:none; color:#334155; background:#fff;
@@ -63,16 +79,12 @@ tbody tr:hover{background:#f8fafc}
 .pagination a:hover{background:#f1f5f9}
 .badge{background:#e0e7ff; border-color:#c7d2fe}
 
-/* ========= Chips de status ========= */
+/* ====== Chips de status ====== */
 .status{display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600}
 .status.disponivel{background:var(--good-bg); color:var(--good)}
 .status.emprestado{background:var(--bad-bg); color:var(--bad)}
 
-/* ========= Filtros (catálogo) ========= */
-.filters{display:grid; grid-template-columns:1fr auto auto auto; gap:12px; align-items:center}
-.checkbox{display:flex; align-items:center; gap:8px; white-space:nowrap}
-
 @media (max-width: 760px){
-  .filters{grid-template-columns:1fr 1fr}
+  .grid.two{grid-template-columns:1fr}
   .form-row{grid-template-columns:1fr}
 }
