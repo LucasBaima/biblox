@@ -103,11 +103,11 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
   ## 📊 Jira — Backlog e Quadro
 
   <p align="center">
-    <img src="jira-backlog-entrega3.png" alt="Backlog Jira - Entrega 3" width="100%">
+    <img src="Backlog-jira-3.png" alt="Backlog Jira - Entrega 3" width="100%">
   </p>
 
   <p align="center">
-    <img src="jira-quadro-entrega3.png" alt="Quadro Jira - Entrega 3" width="100%">
+    <img src="Quadro-jira-3.png" alt="Quadro Jira - Entrega 3" width="100%">
   </p>
 
 </details>
