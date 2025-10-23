@@ -94,6 +94,7 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
   • [Testes Automatizados](https://youtu.be/SEU_ID)  
   • [CI/CD](https://youtu.be/SEU_ID_CI)   
   • [Deploy](https://youtu.be/SEU_ID_DEPLOY)
+ 
   • [Funcionamento do site ](https://youtu.be/7kjOBu160g4?si=pUAwYyOuwS-b3dWc)
   
 
