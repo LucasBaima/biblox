@@ -9,21 +9,17 @@ on:
 
 jobs:
   # -------------------- JOB 1: BUILD --------------------
-  # Responsável por fazer o checkout do código e empacotá-lo.
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Novo: Configura o ambiente Python (necessário apenas se for usado em outros passos, mas mantemos por segurança)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          # ATENÇÃO: 3.14.0 ainda não está disponível no GitHub Actions. 
-          # Use a versão real do seu projeto (ex: 3.12, 3.11, 3.10)
-          python-version: '3.14' 
+          # Use a versão estável do Python
+          python-version: '3.12' 
 
-      # Passo de upload do código (o artefato)
       - name: Upload code artifact
         uses: actions/upload-artifact@v4
         with:
@@ -31,32 +27,29 @@ jobs:
           path: . 
           
   # -------------------- JOB 2: DEPLOY --------------------
-  # Responsável por baixar o artefato e fazer a implantação.
   deploy:
     name: Deploy app
-    needs: build # ESSENCIAL: Só roda se o 'build' passar
+    needs: build # Depende do build
     runs-on: ubuntu-latest
     concurrency: deploy-group
     
     steps:
-      # 1. Download do Artefato
       - name: Download code artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
-      # 2. Desempacotar o Artefato
       - name: Unpack files from artifact folder
         run: |
-          # Move os arquivos baixados (que estão dentro da pasta 'python-app') para o diretório raiz
           mv python-app/* .
           
-      # 3. Configurar o flyctl (Seu passo original)
-      - uses: superfly/fly-cli-actions/setup-flyctl@master
+      # ***** CORREÇÃO AQUI *****
+      # A Action correta é 'superfly/fly-cli-action@1.5'
+      - name: Setup flyctl
+        uses: superfly/fly-cli-action@1.5
 
-      # 4. Executar o Deploy (Seu passo original)
+      # Seu passo original de Deploy
       - name: Deploy app
-        # Seu comando de deploy que estava no seu job original: flyctl deploy --remote-only
         run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
