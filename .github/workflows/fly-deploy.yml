@@ -17,19 +17,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          # Use a versão estável do Python
-          python-version: '3.12' 
+          python-version: '3.12' # Use sua versão correta aqui
 
       - name: Upload code artifact
         uses: actions/upload-artifact@v4
         with:
-          name: python-app # Nome do artefato
+          name: python-app 
           path: . 
           
   # -------------------- JOB 2: DEPLOY --------------------
   deploy:
     name: Deploy app
-    needs: build # Depende do build
+    needs: build
     runs-on: ubuntu-latest
     concurrency: deploy-group
     
@@ -43,9 +42,10 @@ jobs:
         run: |
           mv python-app/* .
           
-      # ***** CORREÇÃO AQUI (USANDO A ACTION OFICIAL DA FLY.IO) *****
+      # ***** CORREÇÃO FINAL AQUI *****
+      # Usando a Action de setup da Fly.io na sua raiz (v1.4 é uma versão estável)
       - name: Setup Fly CLI
-        uses: superfly/flyctl-actions/setup@master
+        uses: superfly/flyctl-actions@v1.4
 
       # Seu passo original de Deploy
       - name: Deploy app
