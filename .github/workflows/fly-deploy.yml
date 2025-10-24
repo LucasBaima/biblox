@@ -43,10 +43,9 @@ jobs:
         run: |
           mv python-app/* .
           
-      # ***** CORREÇÃO AQUI *****
-      # A Action correta é 'superfly/fly-cli-action@1.5'
-      - name: Setup flyctl
-        uses: superfly/fly-cli-action@1.5
+      # ***** CORREÇÃO AQUI (USANDO A ACTION OFICIAL DA FLY.IO) *****
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup@master
 
       # Seu passo original de Deploy
       - name: Deploy app
