@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  # -------------------- JOB 1: BUILD --------------------
+ 
   build:
     runs-on: ubuntu-latest
     steps:
@@ -17,13 +17,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12' # Use sua versão correta aqui
+          python-version: '3.12' 
 
       - name: Upload code artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app 
-          path: . 
+          path: .
           
   # -------------------- JOB 2: DEPLOY --------------------
   deploy:
@@ -33,21 +33,16 @@ jobs:
     concurrency: deploy-group
     
     steps:
+     
       - name: Download code artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
-      - name: Unpack files from artifact folder
-        run: |
-          mv python-app/* .
-          
-      # ***** CORREÇÃO FINAL AQUI *****
-      # Usando a Action de setup da Fly.io na sua raiz (v1.4 é uma versão estável)
+    
       - name: Setup Fly CLI
         uses: superfly/flyctl-actions@v1.4
 
-      # Seu passo original de Deploy
       - name: Deploy app
         run: flyctl deploy --remote-only
         env:
