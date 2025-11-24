@@ -112,3 +112,33 @@ Sistema para organizar pequenos acervos de livros: cadastro, busca, controle de 
 
 </details>
 
+<details>
+  <summary><strong>Entrega 04</strong></summary>
+
+  <br>
+
+  ## 🎬 Screencasts
+
+  • [Testes Automatizados](https://youtu.be/7kjOBu160g4?si=pUAwYyOuwS-b3dWc)
+  • [CI/CD](https://youtu.be/SEU_ID_CI)   
+  • [Deploy](https://youtu.be/SEU_ID_DEPLOY)
+ 
+
+  
+
+  <br>
+
+  ## 📊 Jira — Backlog e Quadro
+
+  <p align="center">
+    <img src="Backlog-jira-3.png" alt="Backlog Jira - Entrega 3" width="100%">
+  </p>
+
+  <p align="center">
+    <img src="Quadro-jira-3.png" alt="Quadro Jira - Entrega 3" width="100%">
+  </p>
+
+</details>
+
+
+
