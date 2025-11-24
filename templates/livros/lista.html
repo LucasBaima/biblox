@@ -2,6 +2,12 @@
 {% block content %}
 <h1>Catálogo de Livros</h1>
 
+<div style="margin: 8px 0 16px 0;">
+  <a href="{% url 'livros:cadastrar_livro' %}" class="btn">
+    + Cadastrar novo livro
+  </a>
+</div>
+
 <form method="get" style="display:flex; gap:12px; align-items:center; margin:12px 0;">
   <input type="text" name="q" placeholder="Pesquisar por título (nome) ou autor" value="{{ q }}">
   <label>
@@ -20,7 +26,12 @@
 {% if livros %}
   <table border="1" cellpadding="6" cellspacing="0" width="100%">
     <thead>
-      <tr><th>Título</th><th>Autor</th><th>Status</th></tr>
+      <tr>
+        <th>Título</th>
+        <th>Autor</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
     </thead>
     <tbody>
       {% for l in livros %}
@@ -28,6 +39,23 @@
         <td>{{ l.nome }}</td>
         <td>{{ l.autor }}</td>
         <td>{{ l.get_status_display }}</td>
+        <td>
+          {% if request.user.is_staff %}
+            <a href="{% url 'livros:editar_livro' l.id %}" class="btn secondary" style="margin-right:4px;">
+              Editar
+            </a>
+            <a href="{% url 'livros:remover_livro' l.id %}"
+               class="btn"
+               style="background:#dc2626; color:white;"
+               onclick="return confirm('Tem certeza que deseja excluir este livro?');">
+              Excluir
+            </a>
+          {% else %}
+            <span style="color:#64748b; font-size: 14px;">
+              Sem permissão
+            </span>
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>

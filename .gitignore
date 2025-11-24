@@ -1,0 +1,14 @@
+# Ambiente virtual
+venv/
+
+# Bytecode do Python
+__pycache__/
+*.py[cod]
+*.pyc
+# Cache do pytest
+.pytest_cache/
+tests/__pycache__/
+
+# SQLite local (se você NÃO quiser versionar o banco)
+# descomente a linha abaixo se quiser ignorar o db.sqlite3:
+# db.sqlite3

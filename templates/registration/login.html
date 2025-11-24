@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Entrar • Biblox{% endblock %}
+
+{% block content %}
+<div class="page" style="display:flex; justify-content:center; align-items:center; min-height:70vh;">
+  <div class="card" style="max-width:420px; width:100%; margin:auto;">
+    <div class="card-body">
+      <h1 class="title" style="text-align:center; margin-bottom:4px;">Entrar</h1>
+      <p style="text-align:center; color:#64748b; margin-bottom:24px;">
+        Acesse o <strong>Biblox</strong> com seu usuário e senha.
+      </p>
+
+      {# mensagens de erro gerais do formulário #}
+      {% if form.non_field_errors %}
+        <div style="background:#fee2e2; color:#b91c1c; padding:8px 12px; border-radius:8px; font-size:14px; margin-bottom:16px;">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="grid" style="gap:12px;">
+          <div>
+            <label for="{{ form.username.id_for_label }}" style="display:block; font-weight:600; margin-bottom:4px;">
+              Usuário
+            </label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <div style="color:#b91c1c; font-size:13px; margin-top:4px;">
+                {% for error in form.username.errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div>
+            <label for="{{ form.password.id_for_label }}" style="display:block; font-weight:600; margin-bottom:4px;">
+              Senha
+            </label>
+            {{ form.password }}
+            {% if form.password.errors %}
+              <div style="color:#b91c1c; font-size:13px; margin-top:4px;">
+                {% for error in form.password.errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {# campo "next" para redirecionar depois do login #}
+        {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button type="submit" class="btn" style="width:100%; margin-top:20px;">
+          Entrar
+        </button>
+      </form>
+
+      <p style="margin-top:16px; font-size:13px; color:#94a3b8; text-align:center;">
+        Em caso de dúvidas sobre o acesso, fale com o administrador do sistema.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
