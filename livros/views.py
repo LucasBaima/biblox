@@ -1,16 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from django.db import IntegrityError
 from django.contrib.auth import get_user_model
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.paginator import Paginator
-from .models import CadastroLivroModel, Emprestimo, Reserva
-from datetime import timedelta
 
+from .models import CadastroLivroModel, Emprestimo, Reserva
+
+from datetime import timedelta, datetime
+import csv
 
 
 # --------- Form para cadastrar/editar livros ---------
@@ -90,11 +92,11 @@ def homepage(request):
     return render(request, "home.html", ctx)
 
 
-
 # ------------------ CRUD de Livros -------------------
 def home(request):
     ctx = {"registros": CadastroLivroModel.objects.all()}
     return render(request, "crud/inicial.html", ctx)
+
 
 def cadastrar_livro(request):
     if request.method == "POST":
@@ -106,10 +108,12 @@ def cadastrar_livro(request):
         form = LivroForm()
     return render(request, "crud/cadastrar.html", {"form": form})
 
+
 def remover_livro(request: HttpRequest, id):
     livro = get_object_or_404(CadastroLivroModel, id=id)
     livro.delete()
     return redirect("livros:home1")
+
 
 def editar_livro(request: HttpRequest, id):
     livro_existente = get_object_or_404(CadastroLivroModel, id=id)
@@ -127,11 +131,25 @@ def editar_livro(request: HttpRequest, id):
 def is_admin(user):
     return user.is_staff or user.is_superuser
 
+
+def usuario_bloqueado(usuario):
+    """
+    Retorna True se o usuário tiver alguma multa em aberto.
+    Critério: existe empréstimo com multa > 0 e multa não paga.
+    """
+    return Emprestimo.objects.filter(
+        usuario=usuario,
+        multa_valor__gt=0,
+        multa_paga=False
+    ).exists()
+
+
 @login_required
 @user_passes_test(is_admin)
 def emprestimos_list(request):
     qs = Emprestimo.objects.select_related("livro", "usuario").order_by("-id")
     return render(request, "emprestimos/list.html", {"emprestimos": qs})
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -151,6 +169,11 @@ def registrar_emprestimo(request):
         usuario = User.objects.get(pk=usuario_id)
     except (User.DoesNotExist, ValueError):
         messages.error(request, "Usuário inexistente")
+        return redirect("livros:registrar_emprestimo")
+
+    # Bloqueio por multa pendente
+    if usuario_bloqueado(usuario):
+        messages.error(request, "Empréstimo bloqueado: pendência de multa.")
         return redirect("livros:registrar_emprestimo")
 
     try:
@@ -196,6 +219,7 @@ def registrar_emprestimo(request):
     messages.success(request, "Empréstimo registrado com sucesso")
     return redirect("livros:emprestimos_list")
 
+
 @login_required
 @user_passes_test(is_admin)
 def registrar_devolucao(request, pk: int):
@@ -212,11 +236,263 @@ def registrar_devolucao(request, pk: int):
         return redirect("livros:registrar_devolucao", pk=emp.pk)
 
     atraso = emp.registrar_devolucao(data_dev_dt)
-    if atraso > 0:
-        messages.warning(request, "Devolução em atraso registrada")
+
+    # Lógica da multa (História 6)
+    if emp.multa_valor > 0:
+        messages.warning(
+            request,
+            f"Multa aplicada por atraso: R$ {emp.multa_valor:.2f}"
+        )
+    elif atraso > 0:
+        messages.warning(request, "Devolução em atraso registrada, sem multa por carência.")
     else:
         messages.success(request, "Devolução registrada com sucesso")
+
     return redirect("livros:emprestimos_list")
+
+
+@login_required
+@user_passes_test(is_admin)
+def quitar_multa(request, pk: int):
+    """
+    Marca a multa de um empréstimo como quitada.
+    Ao quitar, o usuário deixa de ficar bloqueado para novos empréstimos.
+    """
+    emp = get_object_or_404(Emprestimo, pk=pk)
+
+    emp.quitar_multa()
+    messages.success(request, "Multa quitada. Usuário desbloqueado para novos empréstimos.")
+    return redirect("livros:emprestimos_list")
+
+
+# ------------------------ RELATÓRIOS (História 7) -------------------
+def _parse_data(data_str):
+    """Converte 'YYYY-MM-DD' em date, ou None se vier vazio/errado."""
+    try:
+        return datetime.strptime(data_str, "%Y-%m-%d").date()
+    except Exception:
+        return None
+
+
+def _obter_dados_circulacao(data_inicio, data_fim):
+    """
+    Função de apoio que monta os dados do relatório de circulação.
+    Usada tanto pela tela HTML quanto pelos exports CSV/PDF.
+    """
+    # Empréstimos no período (pela data de saída)
+    emprestimos_qs = Emprestimo.objects.filter(
+        data_saida__range=(data_inicio, data_fim)
+    ).select_related("livro", "usuario")
+
+    qtd_emprestimos = emprestimos_qs.count()
+
+    # Devoluções no período (data_devolucao preenchida e no range)
+    devolucoes_qs = Emprestimo.objects.filter(
+        data_devolucao__isnull=False,
+        data_devolucao__range=(data_inicio, data_fim),
+    ).select_related("livro", "usuario")
+
+    qtd_devolucoes = devolucoes_qs.count()
+
+    # Atrasos no período (entre as devoluções do período)
+    qtd_atrasos = sum(1 for e in devolucoes_qs if e.dias_atraso > 0)
+
+    # Reservas criadas no período
+    reservas_qs = Reserva.objects.filter(
+        criada_em__date__range=(data_inicio, data_fim)
+    ).select_related("livro", "usuario")
+    qtd_reservas = reservas_qs.count()
+
+    # Top 10 livros mais emprestados no período (usando data_saida)
+    top_livros_qs = (
+        Emprestimo.objects
+        .filter(data_saida__range=(data_inicio, data_fim))
+        .values("livro__nome")
+        .annotate(total=Count("id"))
+        .order_by("-total")[:10]
+    )
+
+    top_livros = [
+        {
+            "titulo": item["livro__nome"],
+            "total": item["total"],
+        }
+        for item in top_livros_qs
+    ]
+
+    tem_dados = any([
+        qtd_emprestimos,
+        qtd_devolucoes,
+        qtd_atrasos,
+        qtd_reservas,
+        len(top_livros) > 0,
+    ])
+
+    return {
+        "qtd_emprestimos": qtd_emprestimos,
+        "qtd_devolucoes": qtd_devolucoes,
+        "qtd_atrasos": qtd_atrasos,
+        "qtd_reservas": qtd_reservas,
+        "top_livros": top_livros,
+        "tem_dados": tem_dados,
+    }
+
+
+@login_required
+@user_passes_test(is_admin)
+def relatorio_circulacao(request):
+    """
+    Tela principal do relatório de circulação:
+    - filtro por período (data_inicio, data_fim)
+    - exibe contagens e top 10 livros
+    - exibe mensagens de "nenhum dado" quando for o caso
+    """
+    data_inicio_str = (request.GET.get("data_inicio") or "").strip()
+    data_fim_str = (request.GET.get("data_fim") or "").strip()
+
+    data_inicio = _parse_data(data_inicio_str) if data_inicio_str else None
+    data_fim = _parse_data(data_fim_str) if data_fim_str else None
+
+    stats = None
+    mensagem_sem_dados = None
+
+    if data_inicio and data_fim:
+        if data_inicio > data_fim:
+            messages.error(request, "Período inválido: a data inicial é maior que a final.")
+        else:
+            stats = _obter_dados_circulacao(data_inicio, data_fim)
+            if not stats["tem_dados"]:
+                mensagem_sem_dados = "Nenhum dado para o período selecionado."
+    elif data_inicio_str or data_fim_str:
+        messages.error(request, "Informe as duas datas para gerar o relatório.")
+
+    contexto = {
+        "data_inicio": data_inicio_str,
+        "data_fim": data_fim_str,
+        "stats": stats,
+        "mensagem_sem_dados": mensagem_sem_dados,
+    }
+    return render(request, "relatorios/circulacao.html", contexto)
+
+
+@login_required
+@user_passes_test(is_admin)
+def exportar_relatorio_csv(request):
+    """
+    Exporta o relatório de circulação em CSV, mantendo o período informado.
+    """
+    data_inicio_str = (request.GET.get("data_inicio") or "").strip()
+    data_fim_str = (request.GET.get("data_fim") or "").strip()
+
+    data_inicio = _parse_data(data_inicio_str)
+    data_fim = _parse_data(data_fim_str)
+
+    if not (data_inicio and data_fim):
+        messages.error(request, "Período inválido para exportação.")
+        return redirect("livros:relatorio_circulacao")
+
+    dados = _obter_dados_circulacao(data_inicio, data_fim)
+
+    filename = f"relatorio_circulacao_{data_inicio_str}_a_{data_fim_str}.csv"
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response, delimiter=";")
+    writer.writerow(["Relatório de circulação"])
+    writer.writerow([f"Período: {data_inicio_str} a {data_fim_str}"])
+    writer.writerow([])
+
+    writer.writerow(["Indicador", "Quantidade"])
+    writer.writerow(["Empréstimos", dados["qtd_emprestimos"]])
+    writer.writerow(["Devoluções", dados["qtd_devolucoes"]])
+    writer.writerow(["Empréstimos em atraso (no período)", dados["qtd_atrasos"]])
+    writer.writerow(["Reservas", dados["qtd_reservas"]])
+
+    writer.writerow([])
+    writer.writerow(["Top 10 livros mais emprestados"])
+    writer.writerow(["Título", "Qtde empréstimos"])
+
+    for item in dados["top_livros"]:
+        writer.writerow([item["titulo"], item["total"]])
+
+    return response
+
+
+@login_required
+@user_passes_test(is_admin)
+def exportar_relatorio_pdf(request):
+    """
+    Exporta o relatório de circulação em PDF (simples), mantendo o período.
+    Requer a biblioteca 'reportlab':
+        pip install reportlab
+    """
+    data_inicio_str = (request.GET.get("data_inicio") or "").strip()
+    data_fim_str = (request.GET.get("data_fim") or "").strip()
+
+    data_inicio = _parse_data(data_inicio_str)
+    data_fim = _parse_data(data_fim_str)
+
+    if not (data_inicio and data_fim):
+        messages.error(request, "Período inválido para exportação.")
+        return redirect("livros:relatorio_circulacao")
+
+    dados = _obter_dados_circulacao(data_inicio, data_fim)
+
+    try:
+        from reportlab.pdfgen import canvas
+    except ImportError:
+        return HttpResponse(
+            "Biblioteca 'reportlab' não instalada. Rode: pip install reportlab",
+            content_type="text/plain",
+        )
+
+    filename = f"relatorio_circulacao_{data_inicio_str}_a_{data_fim_str}.pdf"
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    p = canvas.Canvas(response)
+    y = 800
+
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, y, "Relatório de circulação")
+    y -= 20
+    p.setFont("Helvetica", 11)
+    p.drawString(50, y, f"Período: {data_inicio_str} a {data_fim_str}")
+    y -= 30
+
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "Indicadores")
+    y -= 18
+    p.setFont("Helvetica", 11)
+    p.drawString(60, y, f"Empréstimos: {dados['qtd_emprestimos']}")
+    y -= 16
+    p.drawString(60, y, f"Devoluções: {dados['qtd_devolucoes']}")
+    y -= 16
+    p.drawString(60, y, f"Empréstimos em atraso (no período): {dados['qtd_atrasos']}")
+    y -= 16
+    p.drawString(60, y, f"Reservas: {dados['qtd_reservas']}")
+    y -= 30
+
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, "Top 10 livros mais emprestados")
+    y -= 18
+    p.setFont("Helvetica", 11)
+    if not dados["top_livros"]:
+        p.drawString(60, y, "Nenhum livro emprestado no período.")
+        y -= 16
+    else:
+        for item in dados["top_livros"]:
+            p.drawString(60, y, f"{item['titulo']} - {item['total']} empréstimo(s)")
+            y -= 16
+            if y < 50:
+                p.showPage()
+                y = 800
+                p.setFont("Helvetica", 11)
+
+    p.showPage()
+    p.save()
+    return response
 
 
 # ------------------------ Reservas -------------------
@@ -225,6 +501,7 @@ def minhas_reservas(request):
     Reserva.expirar_vencidas()
     qs = Reserva.objects.filter(usuario=request.user).select_related('livro').order_by('-criada_em')
     return render(request, "reservas/minhas.html", {"reservas": qs})
+
 
 @login_required
 def criar_reserva(request, livro_id: int):
@@ -255,6 +532,7 @@ def criar_reserva(request, livro_id: int):
     messages.success(request, "Reserva registrada")
     return redirect("livros:minhas_reservas")
 
+
 @login_required
 def cancelar_reserva(request, pk: int):
     if request.method != "POST":
@@ -280,14 +558,12 @@ def cancelar_reserva(request, pk: int):
     return redirect("livros:minhas_reservas")
 
 
+# ------------------------ Área do usuário (empréstimos) -------------------
 @login_required
 def minha_area_de_emprestimos(request):
-    """
-    
-    """
     emprestimos = Emprestimo.objects.filter(
-        usuario=request.user, 
-        data_devolucao__isnull=True 
+        usuario=request.user,
+        data_devolucao__isnull=True
     ).select_related('livro').order_by('data_prevista_devolucao')
 
     context = {
@@ -296,42 +572,36 @@ def minha_area_de_emprestimos(request):
     return render(request, 'emprestimos/minha_area_de_emprestimos.html', context)
 
 
-
-
 @login_required
 def solicitar_renovacao(request, emprestimo_id):
     emprestimo = get_object_or_404(
-        Emprestimo, 
-        id=emprestimo_id, 
+        Emprestimo,
+        id=emprestimo_id,
         usuario=request.user,
-        data_devolucao__isnull=True 
+        data_devolucao__isnull=True
     )
-    
+
     livro_id = emprestimo.livro.id
     MAX_RENOVACOES = 1
 
     pode_renovar_modelo, motivo_modelo = emprestimo.pode_renovar(max_renovacoes=MAX_RENOVACOES)
-        
+
     if not pode_renovar_modelo:
         messages.warning(request, motivo_modelo)
         return redirect('livros:minha_area_de_emprestimos')
 
-
-  
     reserva_em_conflito = Reserva.objects.filter(
         livro=emprestimo.livro,
         status__in=['ativa', 'pronta'],
-    ).exclude(usuario=request.user).exists() 
-    
+    ).exclude(usuario=request.user).exists()
+
     if reserva_em_conflito:
         messages.error(request, f"O livro '{emprestimo.livro}' está reservado por outro usuário. Renovação não permitida.")
         return redirect('livros:minha_area_de_emprestimos')
-    
-    
-    # --- 3. Processamento (POST - Sem usar forms) ---
+
     if request.method == 'POST':
         livro_id_confirmado = request.POST.get('livro_id_confirmacao')
-        
+
         try:
             livro_id_confirmado = int(livro_id_confirmado)
         except (ValueError, TypeError):
@@ -342,101 +612,19 @@ def solicitar_renovacao(request, emprestimo_id):
             try:
                 nova_data = emprestimo.aplicar_renovacao(periodo_dias=7)
                 messages.success(request, f"Renovação aplicada! Nova data: {nova_data.strftime('%d/%m/%Y')}.")
-                return redirect('livros:minha_area_de_emprestimos') 
-            
+                return redirect('livros:minha_area_de_emprestimos')
+
             except Exception as e:
                 messages.error(request, f"Falha ao renovar: {e}")
                 return redirect('livros:solicitar_renovacao', emprestimo_id=emprestimo.id)
         else:
             messages.error(request, "O ID do livro não corresponde.")
-    
-    # 4. Renderização (GET)
-    nova_data_prevista = emprestimo.data_prevista_devolucao + timedelta(days=7) 
-    
+
+    nova_data_prevista = emprestimo.data_prevista_devolucao + timedelta(days=7)
+
     context = {
         'emprestimo': emprestimo,
         'livro_id_original': livro_id,
         'nova_data_prevista': nova_data_prevista
     }
     return render(request, 'emprestimos/confirmar_renovacao.html', context)
-
-from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.urls import reverse
-from datetime import datetime
-from .models import Emprestimo
-
-@login_required
-def emprestimo_detalhe(request, pk):
-    """Mostra os detalhes de um empréstimo e o botão de renovação."""
-    emprestimo = get_object_or_404(Emprestimo, pk=pk)
-    return render(request, "livros/emprestimo_detalhe.html", {"emprestimo": emprestimo})
-
-@login_required
-def renovar_emprestimo(request, pk):
-    """Tela e ação para renovar um empréstimo."""
-    emprestimo = get_object_or_404(Emprestimo, pk=pk)
-
-    # segurança: só o usuário dono ou staff pode renovar
-    if not (request.user.is_staff or request.user == emprestimo.usuario):
-        messages.error(request, "Você não tem permissão para renovar este empréstimo.")
-        return redirect(reverse("emprestimo_detalhe", args=[emprestimo.pk]))
-
-    if request.method == "POST":
-        # tenta aplicar a renovação (usa método do model)
-        try:
-            emprestimo.aplicar_renovacao()
-        except Exception as e:
-            messages.error(request, str(e))
-        else:
-            messages.success(request, "Empréstimo renovado com sucesso!")
-        return redirect(reverse("emprestimo_detalhe", args=[emprestimo.pk]))
-
-    # se for GET, mostra as infos
-    pode, msg = emprestimo.pode_renovar()
-    return render(
-        request,
-        "livros/renovar_emprestimo.html",
-        {"emprestimo": emprestimo, "pode": pode, "motivo": msg},
-    )
-
-from django.shortcuts import get_object_or_404, render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.urls import reverse
-from .models import Emprestimo
-
-@login_required
-def solicitar_renovacao(request, emprestimo_id):
-    """
-    Tela + ação de renovação:
-    - GET  -> mostra a confirmação se pode renovar
-    - POST -> aplica a renovação chamando Emprestimo.aplicar_renovacao()
-    """
-    emprestimo = get_object_or_404(Emprestimo, pk=emprestimo_id)
-
-    # Só o dono do empréstimo ou staff pode renovar
-    if not (request.user.is_staff or request.user == emprestimo.usuario):
-        messages.error(request, "Você não tem permissão para renovar este empréstimo.")
-        return redirect(reverse("livros:minha_area_de_emprestimos"))
-
-    if request.method == "POST":
-        try:
-            # Chama a regra de negócio que já existe no model
-            emprestimo.aplicar_renovacao()  # por padrão +7 dias e conta renovação
-        except Exception as e:
-            messages.error(request, str(e))
-        else:
-            messages.success(request, "Empréstimo renovado com sucesso!")
-        # Para onde voltar depois? Escolhi a sua página "minha área".
-        return redirect(reverse("livros:minha_area_de_emprestimos"))
-
-    # GET: mostra se pode renovar e o motivo caso não
-    pode, motivo = emprestimo.pode_renovar()
-    contexto = {
-        "emprestimo": emprestimo,
-        "pode": pode,
-        "motivo": motivo,
-    }
-    return render(request, "livros/solicitar_renovacao.html", contexto)

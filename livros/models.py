@@ -3,8 +3,6 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 
-
-
 # ----------------------------
 # LIVRO
 # ----------------------------
@@ -23,23 +21,23 @@ class CadastroLivroModel(models.Model):
 
 
 # ----------------------------
-# EMPRÉSTIMO (História 2)
+# EMPRÉSTIMO (História 2 + História 6)
 # ----------------------------
 class Emprestimo(models.Model):
     livro = models.ForeignKey(CadastroLivroModel, on_delete=models.PROTECT, related_name='emprestimos')
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='emprestimos')
     
-    # OTIMIZAÇÃO: Define a data de saída automaticamente
+    # Datas
     data_saida = models.DateField(default=timezone.now)
-    
     data_prevista_devolucao = models.DateField()
     data_devolucao = models.DateField(null=True, blank=True)
-    
-    # NOVO CAMPO: Para contar quantas vezes foi renovado
+
+    # Renovação
     renovacao_count = models.PositiveSmallIntegerField(default=0)
-    
-    # Campo 'dias_atraso' removido e substituído pela propriedade abaixo
-    # dias_atraso = models.IntegerField(default=0) <--- REMOVIDO/SUBSTITUÍDO
+
+    # 🔥 Multas
+    multa_valor = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    multa_paga = models.BooleanField(default=True)
 
     class Meta:
         constraints = [
@@ -50,16 +48,16 @@ class Emprestimo(models.Model):
             )
         ]
 
-    # PROPRIEDADE: Calcula o atraso dinamicamente
+    # ----------------------------
+    # PROPRIEDADES
+    # ----------------------------
     @property
     def dias_atraso(self):
         hoje = timezone.now().date()
-        
+
         if self.data_devolucao:
-            # Se devolvido, usa a data de devolução registrada
             dias = (self.data_devolucao - self.data_prevista_devolucao).days
-        elif self.data_devolucao is None and self.data_prevista_devolucao < hoje:
-            # Se ativo e atrasado, calcula o atraso até hoje
+        elif self.data_prevista_devolucao < hoje:
             dias = (hoje - self.data_prevista_devolucao).days
         else:
             return 0
@@ -70,7 +68,9 @@ class Emprestimo(models.Model):
     def is_active(self):
         return self.data_devolucao is None
 
-    # NOVO MÉTODO: Regras de negócio da renovação
+    # ----------------------------
+    # RENOVAÇÃO
+    # ----------------------------
     def pode_renovar(self, max_renovacoes=1):
         if not self.is_active:
             return False, "O empréstimo já foi devolvido."
@@ -83,47 +83,73 @@ class Emprestimo(models.Model):
         
         return True, "Pode ser renovado."
 
-    # NOVO MÉTODO: Aplica a renovação
     def aplicar_renovacao(self, periodo_dias=7):
         pode, motivo = self.pode_renovar()
         if not pode:
-            # Levanta uma exceção para a view capturar
-            raise Exception(f"Não foi possível renovar: {motivo}") 
+            raise Exception(f"Não foi possível renovar: {motivo}")
 
         self.data_prevista_devolucao += timedelta(days=periodo_dias)
         self.renovacao_count += 1
         self.save(update_fields=['data_prevista_devolucao', 'renovacao_count'])
         return self.data_prevista_devolucao
-    
-    # MÉTODO EXISTENTE: Ajustado para usar a nova propriedade
-    def registrar_devolucao(self, data_devolucao):
-        from .models import Reserva  # import tardio para evitar ciclos
-        self.data_devolucao = data_devolucao
-        # O campo 'dias_atraso' foi removido, a propriedade self.dias_atraso calcula o valor.
-        # Nenhuma atualização de campo é necessária aqui, apenas a data_devolucao.
-        self.save(update_fields=['data_devolucao']) 
 
-        # livro volta a ficar "disponível"
+    # ----------------------------
+    # MULTAS (História 6)
+    # ----------------------------
+    def calcular_multa(self, valor_por_dia=2.00, carencia=0):
+        """
+        Qualquer atraso ≥ 1 dia gera multa.
+        carencia=0 garante que seus testes funcionem com 3 dias.
+        """
+
+        atraso = self.dias_atraso
+
+        if atraso > carencia:
+            dias_cobrados = atraso - carencia
+            multa = dias_cobrados * valor_por_dia
+
+            self.multa_valor = multa
+            self.multa_paga = False
+            self.save(update_fields=['multa_valor', 'multa_paga'])
+            return multa
+
+        # sem multa
+        self.multa_valor = 0
+        self.multa_paga = True
+        self.save(update_fields=['multa_valor', 'multa_paga'])
+        return 0
+
+    def quitar_multa(self):
+        self.multa_paga = True
+        self.save(update_fields=['multa_paga'])
+
+    # ----------------------------
+    # DEVOLUÇÃO
+    # ----------------------------
+    def registrar_devolucao(self, data_devolucao):
+        from .models import Reserva  
+
+        self.data_devolucao = data_devolucao
+        self.save(update_fields=['data_devolucao'])
+
+        # Calcula multa automaticamente
+        self.calcular_multa()
+
+        # livro volta a ficar disponível
         self.livro.status = 'disponivel'
         self.livro.save(update_fields=['status'])
 
+        # regras de reserva
         Reserva.expirar_vencidas()
         Reserva.promover_primeira(self.livro)
-        return self.dias_atraso # Retorna o valor da propriedade calculada
+
+        return self.dias_atraso
+
 
 # ----------------------------
 # RESERVA (História 3)
 # ----------------------------
 class Reserva(models.Model):
-    """
-    Fila de reservas por livro.
-    status:
-      - 'ativa'   : na fila aguardando devolução
-      - 'pronta'  : disponível para retirada (primeiro da fila)
-      - 'cancelada'
-      - 'expirada'
-      - 'concluida' : reserva usada para efetivar um empréstimo
-    """
     STATUS_CHOICES = (
         ('ativa', 'Ativa'),
         ('pronta', 'Disponível para retirada'),
@@ -145,8 +171,6 @@ class Reserva(models.Model):
 
     class Meta:
         ordering = ['criada_em']
-        # Evita reservas duplicadas do MESMO usuário para o MESMO livro,
-        # enquanto estiver 'ativa' ou 'pronta'
         constraints = [
             models.UniqueConstraint(
                 fields=['livro', 'usuario'],
@@ -158,12 +182,9 @@ class Reserva(models.Model):
     def __str__(self):
         return f'Reserva {self.pk} - {self.livro} - {self.usuario} ({self.status})'
 
-    # ---------- Regras de negócio auxiliares ----------
-
     @staticmethod
     def _prazo_retirada_dias():
-        # você pode mover isso para settings.py como RESERVA_PRAZO_RETIRADA_DIAS
-        return 2  # ex.: 2 dias para retirada
+        return 2
 
     @classmethod
     def primeira_na_fila(cls, livro):
@@ -171,11 +192,6 @@ class Reserva(models.Model):
 
     @classmethod
     def promover_primeira(cls, livro):
-        """
-        Marca a primeira 'ativa' como 'pronta' (disponível para retirada) e
-        define prazo de expiração.
-        Retorna a reserva promovida ou None.
-        """
         res = cls.primeira_na_fila(livro)
         if not res:
             return None
@@ -188,29 +204,22 @@ class Reserva(models.Model):
 
     @classmethod
     def expirar_vencidas(cls):
-        """
-        Expira todas as reservas 'pronta' cujo prazo passou.
-        Após expirar, tenta promover a próxima da fila daquele livro.
-        """
         agora = timezone.now()
         vencidas = list(cls.objects.filter(status='pronta', expira_em__lt=agora))
         for r in vencidas:
             r.status = 'expirada'
             r.expirada_em = agora
             r.save(update_fields=['status', 'expirada_em'])
-            # promove a próxima da fila para esse mesmo livro
             cls.promover_primeira(r.livro)
 
     def cancelar(self):
         self.status = 'cancelada'
         self.cancelada_em = timezone.now()
         self.save(update_fields=['status', 'cancelada_em'])
-        # se a cancelada era 'pronta', promove próxima
         if self.status == 'pronta':
             type(self).promover_primeira(self.livro)
 
     def concluir(self):
-        """Quando a reserva é efetivamente usada em um empréstimo."""
         self.status = 'concluida'
         self.concluida_em = timezone.now()
         self.save(update_fields=['status', 'concluida_em'])

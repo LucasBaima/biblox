@@ -15,11 +15,40 @@
     <nav class="navbar">
       <div class="brand"><a href="/">Biblox</a></div>
       <div class="navlinks">
-        <a href="/livros/" class="{% if request.path|slice:':8' == '/livros/' or request.path == '/livros' %}active{% endif %}">Catálogo</a>
-        <a href="/livros/cadastrar/" class="{% if '/livros/cadastrar' in request.path %}active{% endif %}">Cadastrar</a>
-        <a href="/livros/emprestimos/" class="{% if '/livros/emprestimos' in request.path %}active{% endif %}">Empréstimos</a>
-        <a href="/livros/reservas/" class="{% if '/livros/reservas' in request.path %}active{% endif %}">Reservas</a>
+
+        <!-- Catálogo -->
+        <a href="/livros/" 
+           class="{% if request.path|slice:':8' == '/livros/' or request.path == '/livros' %}active{% endif %}">
+          Catálogo
+        </a>
+
+        <!-- Cadastrar livro -->
+        <a href="/livros/cadastrar/" 
+           class="{% if '/livros/cadastrar' in request.path %}active{% endif %}">
+          Cadastrar
+        </a>
+
+        <!-- Empréstimos -->
+        <a href="/livros/emprestimos/" 
+           class="{% if '/livros/emprestimos' in request.path %}active{% endif %}">
+          Empréstimos
+        </a>
+
+        <!-- Reservas -->
+        <a href="/livros/reservas/" 
+           class="{% if '/livros/reservas' in request.path %}active{% endif %}">
+          Reservas
+        </a>
+
+        <!-- 🔹 NOVO MENU: RELATÓRIOS -->
+        <a href="/livros/relatorios/circulacao/" 
+           class="{% if '/livros/relatorios' in request.path %}active{% endif %}">
+          Relatórios
+        </a>
+
+        <!-- Admin -->
         <a href="/admin/">Admin</a>
+
       </div>
     </nav>
   </header>
@@ -35,11 +64,10 @@
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Rodapé (sem link de GitHub de usuário) -->
+  <!-- Rodapé -->
   <footer class="footer">
-  Biblox • {% now "Y" %}
-</footer>
-
+    Biblox • {% now "Y" %}
+  </footer>
 
   {% block extra_js %}{% endblock %}
 </body>

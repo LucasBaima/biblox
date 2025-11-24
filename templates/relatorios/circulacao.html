@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Circulação • Biblox{% endblock %}
+
+{% block content %}
+<div class="page">
+
+  <h1 class="title">Relatório de circulação</h1>
+
+  <form method="get" class="card" style="padding:16px; margin-top:16px; max-width:500px;">
+    <label>Data inicial</label>
+    <input type="date" name="data_inicio" value="{{ data_inicio }}">
+
+    <label style="margin-top:8px;">Data final</label>
+    <input type="date" name="data_fim" value="{{ data_fim }}">
+
+    <button class="btn" style="margin-top:12px;">Gerar relatório</button>
+  </form>
+
+  {% if mensagem_sem_dados %}
+    <div class="card" style="margin-top:16px; padding:16px; color:#64748b;">
+      {{ mensagem_sem_dados }}
+    </div>
+  {% endif %}
+
+  {% if stats %}
+  <div class="card" style="margin-top:20px;">
+    <div class="card-body">
+      <h2>Resumo do período</h2>
+
+      <p><b>Empréstimos:</b> {{ stats.qtd_emprestimos }}</p>
+      <p><b>Devoluções:</b> {{ stats.qtd_devolucoes }}</p>
+      <p><b>Empréstimos em atraso:</b> {{ stats.qtd_atrasos }}</p>
+      <p><b>Reservas:</b> {{ stats.qtd_reservas }}</p>
+
+      <hr style="margin:16px 0;">
+
+      <h2>Top 10 livros mais emprestados</h2>
+
+      {% if stats.top_livros %}
+        <ul>
+        {% for item in stats.top_livros %}
+          <li>{{ item.titulo }} — {{ item.total }}</li>
+        {% endfor %}
+        </ul>
+      {% else %}
+        <p style="color:#64748b;">Nenhum livro emprestado no período.</p>
+      {% endif %}
+
+      <hr style="margin:16px 0;">
+
+      <h2>Exportar relatório</h2>
+      <a class="btn" href="{% url 'livros:exportar_relatorio_csv' %}?data_inicio={{data_inicio}}&data_fim={{data_fim}}">Exportar CSV</a>
+      <a class="btn" href="{% url 'livros:exportar_relatorio_pdf' %}?data_inicio={{data_inicio}}&data_fim={{data_fim}}">Exportar PDF</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
