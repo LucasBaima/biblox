@@ -13,42 +13,42 @@
   <!-- Navbar -->
   <header class="header">
     <nav class="navbar">
-      <div class="brand"><a href="/">Biblox</a></div>
+      <div class="brand">
+        <a href="/">Biblox</a>
+      </div>
       <div class="navlinks">
 
-        <!-- Catálogo -->
-        <a href="/livros/" 
-           class="{% if request.path|slice:':8' == '/livros/' or request.path == '/livros' %}active{% endif %}">
+        {# Catálogo: só ativa em /livros/ ou /livros #}
+        <a href="{% url 'livros:catalogo' %}"
+           class="{% if request.path == '/livros/' or request.path == '/livros' %}active{% endif %}">
           Catálogo
         </a>
 
-        <!-- Cadastrar livro -->
-        <a href="/livros/cadastrar/" 
-           class="{% if '/livros/cadastrar' in request.path %}active{% endif %}">
+        {# Cadastrar: ativa apenas em /livros/cadastrar/ #}
+        <a href="{% url 'livros:cadastrar_livro' %}"
+           class="{% if request.path == '/livros/cadastrar/' or request.path == '/livros/cadastrar' %}active{% endif %}">
           Cadastrar
         </a>
 
-        <!-- Empréstimos -->
-        <a href="/livros/emprestimos/" 
+        {# Empréstimos #}
+        <a href="{% url 'livros:emprestimos_list' %}"
            class="{% if '/livros/emprestimos' in request.path %}active{% endif %}">
           Empréstimos
         </a>
 
-        <!-- Reservas -->
-        <a href="/livros/reservas/" 
+        {# Reservas #}
+        <a href="{% url 'livros:minhas_reservas' %}"
            class="{% if '/livros/reservas' in request.path %}active{% endif %}">
           Reservas
         </a>
 
-        <!-- 🔹 NOVO MENU: RELATÓRIOS -->
-        <a href="/livros/relatorios/circulacao/" 
+        {# 🔹 RELATÓRIOS (História 7) #}
+        <a href="{% url 'livros:relatorios_circulacao' %}"
            class="{% if '/livros/relatorios' in request.path %}active{% endif %}">
           Relatórios
         </a>
 
-        <!-- Admin -->
         <a href="/admin/">Admin</a>
-
       </div>
     </nav>
   </header>

@@ -26,7 +26,7 @@ urlpatterns = [
     path("reservas/criar/<int:livro_id>/", views.criar_reserva, name="criar_reserva"),
     path("reservas/cancelar/<int:pk>/", views.cancelar_reserva, name="cancelar_reserva"),
     # RELATÓRIOS
-    path("relatorios/circulacao/", views.relatorio_circulacao, name="relatorio_circulacao"),
+    path("relatorios/circulacao/", views.relatorio_circulacao, name="relatorios_circulacao"),
     path("relatorios/circulacao/exportar/csv/", views.exportar_relatorio_csv, name="exportar_relatorio_csv"),
     path("relatorios/circulacao/exportar/pdf/", views.exportar_relatorio_pdf, name="exportar_relatorio_pdf"),
 
