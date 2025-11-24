@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Renovar Empréstimo • Biblox{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="card" style="max-width:640px; margin:40px auto;">
+    <div class="card-body">
+      <h1 class="title">Renovar Empréstimo</h1>
+
+      <p>
+        Deseja realmente renovar o empréstimo do livro:
+        <strong>{{ emprestimo.livro.nome }}</strong>?
+      </p>
+
+      <p>
+        Data prevista atual:
+        <strong>{{ emprestimo.data_prevista_devolucao|date:"d/m/Y" }}</strong>
+      </p>
+
+      <p>
+        Nova data prevista:
+        <strong>{{ nova_data_prevista|date:"d/m/Y" }}</strong>
+      </p>
+
+      <form method="post" style="margin-top:20px; display:flex; gap:12px;">
+        {% csrf_token %}
+        <button type="submit" class="btn">
+          Confirmar Renovação
+        </button>
+        <a href="{% url 'livros:emprestimos_list' %}" class="btn secondary">
+          Cancelar
+        </a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

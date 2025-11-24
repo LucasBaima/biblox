@@ -575,57 +575,56 @@ def minha_area_de_emprestimos(request):
 
 @login_required
 def solicitar_renovacao(request, emprestimo_id):
-    emprestimo = get_object_or_404(
-        Emprestimo,
-        id=emprestimo_id,
-        usuario=request.user,
-        data_devolucao__isnull=True
-    )
+    """
+    Tela de confirmação + gravação da renovação de um empréstimo.
+    Regras:
+    - Somente staff ou o próprio usuário podem renovar.
+    - Não pode renovar se já devolvido.
+    - Não pode renovar se estiver em atraso.
+    - Limite de 1 renovação.
+    """
 
-    livro_id = emprestimo.livro.id
-    MAX_RENOVACOES = 1
+    emprestimo = get_object_or_404(Emprestimo, id=emprestimo_id)
 
-    pode_renovar_modelo, motivo_modelo = emprestimo.pode_renovar(max_renovacoes=MAX_RENOVACOES)
+    # --- Permissão ---
+    if not (request.user.is_staff or request.user == emprestimo.usuario):
+        messages.error(request, "Você não tem permissão para renovar este empréstimo.")
+        return redirect("livros:emprestimos_list")
 
-    if not pode_renovar_modelo:
-        messages.warning(request, motivo_modelo)
-        return redirect('livros:minha_area_de_emprestimos')
+    # --- Já devolvido ---
+    if emprestimo.data_devolucao:
+        messages.error(request, "Não é possível renovar um empréstimo já devolvido.")
+        return redirect("livros:emprestimos_list")
 
-    reserva_em_conflito = Reserva.objects.filter(
-        livro=emprestimo.livro,
-        status__in=['ativa', 'pronta'],
-    ).exclude(usuario=request.user).exists()
+    # --- Em atraso ---
+    if emprestimo.dias_atraso > 0:
+        messages.error(request, "Não é possível renovar empréstimo em atraso.")
+        return redirect("livros:emprestimos_list")
 
-    if reserva_em_conflito:
-        messages.error(request, f"O livro '{emprestimo.livro}' está reservado por outro usuário. Renovação não permitida.")
-        return redirect('livros:minha_area_de_emprestimos')
+    # --- Limite de renovações ---
+    if (emprestimo.renovacao_count or 0) >= 1:
+        messages.error(request, "Limite de 1 renovação já foi utilizado.")
+        return redirect("livros:emprestimos_list")
 
-    if request.method == 'POST':
-        livro_id_confirmado = request.POST.get('livro_id_confirmacao')
-
-        try:
-            livro_id_confirmado = int(livro_id_confirmado)
-        except (ValueError, TypeError):
-            messages.error(request, "ID do livro inválido. Tente novamente.")
-            return redirect('livros:solicitar_renovacao', emprestimo_id=emprestimo.id)
-
-        if livro_id_confirmado == livro_id:
-            try:
-                nova_data = emprestimo.aplicar_renovacao(periodo_dias=7)
-                messages.success(request, f"Renovação aplicada! Nova data: {nova_data.strftime('%d/%m/%Y')}.")
-                return redirect('livros:minha_area_de_emprestimos')
-
-            except Exception as e:
-                messages.error(request, f"Falha ao renovar: {e}")
-                return redirect('livros:solicitar_renovacao', emprestimo_id=emprestimo.id)
-        else:
-            messages.error(request, "O ID do livro não corresponde.")
-
+    # Nova data sugerida (ex.: +7 dias)
     nova_data_prevista = emprestimo.data_prevista_devolucao + timedelta(days=7)
 
-    context = {
-        'emprestimo': emprestimo,
-        'livro_id_original': livro_id,
-        'nova_data_prevista': nova_data_prevista
-    }
-    return render(request, 'emprestimos/confirmar_renovacao.html', context)
+    # --- Salvar renovação ---
+    if request.method == "POST":
+        emprestimo.data_prevista_devolucao = nova_data_prevista
+        emprestimo.renovacao_count = (emprestimo.renovacao_count or 0) + 1
+        emprestimo.save()
+
+        messages.success(request, "Renovação aplicada com sucesso!")
+        return redirect("livros:emprestimos_list")
+
+    # --- Renderizar tela de confirmação ---
+    return render(
+        request,
+        "emprestimos/confirmar_renovacao.html",
+        {
+            "emprestimo": emprestimo,
+            "nova_data_prevista": nova_data_prevista
+        }
+    )
+
