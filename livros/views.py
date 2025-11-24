@@ -19,11 +19,10 @@ import csv
 class LivroForm(forms.ModelForm):
     class Meta:
         model = CadastroLivroModel
-        fields = ["nome", "autor", "isbn", "completo"]
+        fields = ["nome", "autor", "completo"]
         labels = {
             "nome": "Nome do livro",
             "autor": "Autor(a)",
-            "isbn": "ISBN (13 dígitos)",
             "completo": "Edição integral (obra completa)",
         }
 
@@ -389,7 +388,8 @@ def exportar_relatorio_csv(request):
 
     if not (data_inicio and data_fim):
         messages.error(request, "Período inválido para exportação.")
-        return redirect("livros:relatorio_circulacao")
+        return redirect("/livros/relatorios/circulacao/")
+
 
     dados = _obter_dados_circulacao(data_inicio, data_fim)
 
@@ -435,7 +435,8 @@ def exportar_relatorio_pdf(request):
 
     if not (data_inicio and data_fim):
         messages.error(request, "Período inválido para exportação.")
-        return redirect("livros:relatorio_circulacao")
+        return redirect("/livros/relatorios/circulacao/")
+
 
     dados = _obter_dados_circulacao(data_inicio, data_fim)
 

@@ -5,37 +5,36 @@
 <div class="page">
   <h1 class="title">Cadastrar livro</h1>
 
-  <div class="card"><div class="card-body">
-    <form method="post" class="grid">
-      {% csrf_token %}
+  <div class="card">
+    <div class="card-body">
+      <form method="post" class="grid">
+        {% csrf_token %}
 
-      <div class="form-row">
-        <div>
-          <label for="id_nome">Nome</label>
-          {{ form.nome }}
+        <div class="form-row">
+          <div>
+            <label for="id_nome">Nome</label>
+            {{ form.nome }}
+          </div>
+          <div>
+            <label for="id_autor">Autor</label>
+            {{ form.autor }}
+          </div>
         </div>
-        <div>
-          <label for="id_autor">Autor</label>
-          {{ form.autor }}
-        </div>
-      </div>
 
-      <div class="form-row">
-        <div>
-          <label for="id_isbn">ISBN</label>
-          {{ form.isbn }}
+        <div class="form-row">
+          <div style="display:flex; align-items:center; gap:8px; margin-top:26px;">
+            {{ form.completo }} 
+            <label for="id_completo">Edição integral</label>
+          </div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px; margin-top:26px;">
-          {{ form.completo }} <label for="id_completo">Edição integral</label>
-        </div>
-      </div>
 
-      <div class="form-actions">
-        <button class="btn" type="submit">Salvar</button>
-        <a class="btn ghost" href="{% url 'livros:home1' %}">Cancelar</a>
-      </div>
-    </form>
-  </div></div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Salvar</button>
+          <a class="btn ghost" href="{% url 'livros:home1' %}">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 {% endblock %}
